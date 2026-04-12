@@ -1,0 +1,23 @@
+# Python core
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment 
+venv/
+env/
+
+# Database 
+*.db
+*.sqlite3
+
+# env
+.env
+
+# OS generated files 
+.DS_Store
+Thumbs.db
+
+# Output/Build folders
+build/
+dist/
