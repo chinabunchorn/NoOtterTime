@@ -1,76 +1,104 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>Sign Up</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-
 <body class="flex items-center justify-center min-h-screen bg-[#222831]">
 
-    <form method="POST" class="bg-white p-6 rounded-xl shadow-md w-96 space-y-3">
+    <form id="signupForm" class="bg-white p-6 rounded-xl shadow-md w-96 space-y-3">
 
-        <!-- Logo -->
-        <img src="{{ url_for('static', filename='images/logo.png') }}" class="w-20 mx-auto">
+        <img src="../static/images/logo.png" class="w-20 mx-auto" alt="Logo">
 
         <h1 class="text-2xl font-bold text-center">NoOtterTime (to study)</h1>
-
         <h2 class="text-xl text-center">Create Account</h2>
 
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        {% for category, msg in messages %}
-        <div class="p-2 rounded text-white
-        {% if category == 'error' %} bg-red-500 {% else %} bg-green-500 {% endif %}">
-            {{ msg }}
-        </div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
+        <div id="messageBox" class="p-2 rounded text-white hidden text-center"></div>
 
-        <input name="username" placeholder="Username" required class="w-full p-2 border rounded">
+        <input type="text" id="username" placeholder="Username" required class="w-full p-2 border rounded">
+        <input type="password" id="password" placeholder="Password" required class="w-full p-2 border rounded">
 
-        <input type="password" name="password" placeholder="Password" required class="w-full p-2 border rounded">
-
-        <select name="gender" class="w-full p-2 border rounded">
+        <select id="gender" class="w-full p-2 border rounded">
             <option value="">Select Gender</option>
-            <option>Male</option>
-            <option>Female</option>
-            <option>Other</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
         </select>
 
-        <input type="number" name="age" placeholder="Age" class="w-full p-2 border rounded">
+        <input type="number" id="age" placeholder="Age" class="w-full p-2 border rounded">
 
-        <select name="field_of_interest" class="w-full p-2 border rounded">
+        <select id="field_of_interest" class="w-full p-2 border rounded">
             <option value="">Select your field of interest</option>
-            <option>Math</option>
-            <option>Physics</option>
-            <option>Statistics</option>
-            <option>bla bla bla</option>
+            <option value="Math">Math</option>
+            <option value="Physics">Physics</option>
+            <option value="Statistics">Statistics</option>
+            <option value="bla bla bla">bla bla bla</option>
         </select>
 
-        <select name="study_goal" class="w-full p-2 border rounded">
+        <select id="study_goal" class="w-full p-2 border rounded">
             <option value="">Select your study goal</option>
-            <option>Improve grades</option>
-            <option>Exam preparation</option>
-            <option>Learn new skills</option>
-            <option>Career development</option>
+            <option value="Improve grades">Improve grades</option>
+            <option value="Exam preparation">Exam preparation</option>
+            <option value="Learn new skills">Learn new skills</option>
+            <option value="Career development">Career development</option>
         </select>
 
         <p class="text-sm text-center mt-2">
             Already have an account?
-            <a href="{{ url_for('login') }}" class="text-[#64CCC5] hover:underline">
+            <a href="login.html" class="text-[#64CCC5] hover:underline">
                 Login
             </a>
         </p>
 
-        <button class="w-full bg-[#64CCC5] hover:bg-[#6ad9d2] text-white p-2 rounded">
+        <button type="submit" class="w-full bg-[#64CCC5] hover:bg-[#6ad9d2] text-white p-2 rounded">
             Sign Up
         </button>
 
     </form>
 
-</body>
+    <script>
+        document.getElementById("signupForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
 
+            const ageInput = document.getElementById("age").value;
+            const ageValue = ageInput ? parseInt(ageInput) : null;
+
+            const payload = {
+                username: document.getElementById("username").value,
+                password: document.getElementById("password").value,
+                gender: document.getElementById("gender").value,
+                age: ageValue,
+                field_of_interest: document.getElementById("field_of_interest").value,
+                study_goal: document.getElementById("study_goal").value
+            };
+
+            const msgBox = document.getElementById("messageBox");
+
+            try {
+                const response = await fetch("/api/signup", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                msgBox.classList.remove("hidden");
+                if (response.ok) {
+                    msgBox.className = "p-2 rounded text-white text-center bg-green-500";
+                    msgBox.innerText = data.message;
+                    setTimeout(() => { window.location.href = "login.html"; }, 1500);
+                } else {
+                    msgBox.className = "p-2 rounded text-white text-center bg-red-500";
+                    msgBox.innerText = data.error;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                msgBox.classList.remove("hidden");
+                msgBox.className = "p-2 rounded text-white text-center bg-red-500";
+                msgBox.innerText = "Connection error. Is the server running?";
+            }
+        });
+    </script>
+</body>
 </html>
