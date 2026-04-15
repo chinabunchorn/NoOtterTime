@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sign Up</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex items-center justify-center min-h-screen bg-[#222831]">
+
+    <form method="POST" class="bg-white p-6 rounded-xl shadow-md w-96 space-y-3">
+
+        <!-- Logo -->
+        <img src="{{ url_for('static', filename='images/logo.png') }}" class="w-20 mx-auto">
+
+        <h1 class="text-2xl font-bold text-center">NoOtterTime (to study)</h1>
+
+        <h2 class="text-xl text-center">Create Account</h2>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, msg in messages %}
+        <div class="p-2 rounded text-white
+        {% if category == 'error' %} bg-red-500 {% else %} bg-green-500 {% endif %}">
+            {{ msg }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <input name="username" placeholder="Username" required class="w-full p-2 border rounded">
+
+        <input type="password" name="password" placeholder="Password" required class="w-full p-2 border rounded">
+
+        <select name="gender" class="w-full p-2 border rounded">
+            <option value="">Select Gender</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+        </select>
+
+        <input type="number" name="age" placeholder="Age" class="w-full p-2 border rounded">
+
+        <select name="field_of_interest" class="w-full p-2 border rounded">
+            <option value="">Select your field of interest</option>
+            <option>Math</option>
+            <option>Physics</option>
+            <option>Statistics</option>
+            <option>bla bla bla</option>
+        </select>
+
+        <select name="study_goal" class="w-full p-2 border rounded">
+            <option value="">Select your study goal</option>
+            <option>Improve grades</option>
+            <option>Exam preparation</option>
+            <option>Learn new skills</option>
+            <option>Career development</option>
+        </select>
+
+        <p class="text-sm text-center mt-2">
+            Already have an account?
+            <a href="{{ url_for('login') }}" class="text-[#64CCC5] hover:underline">
+                Login
+            </a>
+        </p>
+
+        <button class="w-full bg-[#64CCC5] hover:bg-[#6ad9d2] text-white p-2 rounded">
+            Sign Up
+        </button>
+
+    </form>
+
+</body>
+
+</html>
