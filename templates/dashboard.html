@@ -1,4 +1,351 @@
-const response = await fetch("http://127.0.0.1:5000/api/dashboard/overview", {
-    method: "GET",
-    credentials: "include" 
-});
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoOtterTime — Dashboard</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #f6f6f6;
+      --card:   #eeeeee;
+      --border: #e0e0ec;
+      --dark:   #1a1a2e;
+      --muted:  #8888a8;
+      --teal:   #4ecdc4;
+      --purple: #8878cc;
+      --mint:   #9de8e4;
+      --brown:  #7b503e;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--dark);
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .lbl {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .nav-btn {
+      padding: 20px 64px;
+      border: none;
+      border-radius: 12px;
+      background: #d1d1d1;
+      font-size: 24px;
+      font-weight: 500;
+      color: var(--dark);
+      cursor: pointer;
+    }
+    .nav-btn:hover { background: #c0c0c0; }
+  </style>
+</head>
+
+<body style="display:flex; flex-direction:column; height:100vh;">
+
+  <!-- ══  HEADER  ══ -->
+  <div style="
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 32px 10px;
+    background: var(--bg);
+  ">
+    <div style="display:flex; align-items:center; gap:16px; margin-left: 20px;">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" style="width: 80px; height: auto;">
+      <span style="font-size:3.2rem; font-weight:400; color:var(--dark);">
+        Hello, {{ username }}!
+      </span>
+    </div>
+    <div style="display:flex; gap:48px; margin-right: 150px;">
+      <button class="nav-btn">Timer</button>
+      <button class="nav-btn">Schedule</button>
+    </div>
+  </div>
+
+  <!-- ══  MAIN GRID  ══ -->
+  <div style="
+    flex: 1; min-height: 0;
+    display: grid;
+    grid-template-rows: 1fr 260px;
+    gap: 16px;
+    padding: 20px 32px 24px;
+  ">
+
+    <!-- TOP ROW -->
+    <div style="min-height:0; display:grid; grid-template-columns:3fr 2fr; gap:16px;">
+
+      <!-- Line chart card -->
+      <div class="card" style="display:flex; flex-direction:column; padding:18px 22px 10px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
+          <p class="lbl" style="color:var(--dark); font-size: 14px;">Average Study Hours</p>
+          <div style="text-align:right;">
+            <p class="lbl" style="color:var(--dark); font-size: 14px;">Total Average</p>
+            <p id="avg-stat" style="
+              font-size:2.2rem; font-weight:800;
+              color:var(--dark); line-height:1.1; margin-top:4px;
+            ">—</p>
+          </div>
+        </div>
+        <div id="line-chart" style="flex:1; min-height:0;"></div>
+      </div>
+
+      <!-- Activity rings card -->
+      <div class="card" style="
+        display:flex; flex-direction:column;
+        padding:16px 16px 6px;
+      ">
+        <p style="
+          font-size: 1.5rem;
+          font-weight: 800;
+          color: var(--dark);
+          text-align: center;
+          margin-bottom: 4px;
+        ">Study Time Per Subject</p>
+        <div id="ring-chart" style="flex:1; min-height:0;"></div>
+      </div>
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div style="
+      flex-shrink:0;
+      display:grid; grid-template-columns:1fr 1fr 1fr;
+      gap:16px;
+    ">
+
+      <!-- Streak — brown -->
+      <div style="
+        display:flex; flex-direction:column;
+        justify-content:center; padding:20px 36px;
+        background:var(--brown); border-radius:20px;
+      ">
+        <p style="font-size:2.5rem; font-weight:400; color:#fff;">You're at a</p>
+        <p style="
+          font-size:4rem; font-weight:900;
+          color:var(--teal); line-height:1.05; margin:4px 0 2px;
+        ">{{ streak }}&nbsp;<span style="font-size:3.5rem;">day</span></p>
+        <p style="font-size:2.5rem; font-weight:400; color:#fff;">streak !</p>
+      </div>
+
+      <!-- Burnout — purple -->
+      <div style="
+        display:flex; flex-direction:column;
+        align-items:center; justify-content:center; gap:10px;
+        background:var(--purple); border-radius:20px; padding:20px;
+      ">
+        <p style="font-size:3rem; font-weight:800; color:#fff; text-align:center; line-height:1.2;">
+          Burn out Risk
+        </p>
+        <p id="burnout-text" style="font-size:2.5rem; font-weight:500; color:#fff;">
+          {{ burnout.label }}
+        </p>
+      </div>
+
+      <!-- Suggestion — mint -->
+      <div style="
+        display:flex; flex-direction:column;
+        justify-content:center;
+        background:var(--mint); border-radius:20px; padding:20px 36px;
+      ">
+        <p style="font-size:2.5rem; font-weight:800; color:var(--dark);">Suggestion :</p>
+        <p style="
+          font-size:1.9rem; font-weight:400; color:var(--dark);
+          margin-top:8px; line-height:1.25;
+        ">{{ suggestion }}</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══  DATA  ══ -->
+  <script type="application/json" id="d-weekly">{{ weekly_json | safe }}</script>
+  <script type="application/json" id="d-courses">{{ courses | tojson }}</script>
+  <script type="application/json" id="d-burnout">{{ burnout.label | tojson }}</script>
+
+  <script>
+  (function () {
+    const weeklyData   = JSON.parse(document.getElementById('d-weekly').textContent);
+    const coursesData  = JSON.parse(document.getElementById('d-courses').textContent);
+    const burnoutLabel = JSON.parse(document.getElementById('d-burnout').textContent);
+
+    const TEAL   = '#4ecdc4';
+    const DARK   = '#1a1a2e';
+    const MUTED  = '#8888a8';
+    const GRID   = '#eaeaf4';
+    const TRACK  = 'rgba(210,210,230,0.55)';
+
+    /* Ring colours: indigo → teal → pink */
+    const RING_PALETTE = ['#5654a2', '#4ecdc4', '#ff8fab'];
+
+    const BASE = {
+      paper_bgcolor: 'transparent',
+      plot_bgcolor:  'transparent',
+      font: { color: MUTED, size: 11, family: 'Inter, ui-sans-serif, system-ui' },
+    };
+
+    /* ── Format "MM/DD" → "Apr 14" ── */
+    function formatDay(raw) {
+      const parts = String(raw).split('/');
+      if (parts.length === 2) {
+        const d = new Date(new Date().getFullYear(), parseInt(parts[0]) - 1, parseInt(parts[1]));
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+      const d = new Date(raw);
+      return isNaN(d) ? raw : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    /* ── Avg hours ── */
+    const rawDays = [...new Set(weeklyData.map(r => r.day))];
+    const totalsPerDay = rawDays.map(d =>
+      weeklyData.filter(r => r.day === d).reduce((s, r) => s + r.hours, 0)
+    );
+    const days = rawDays.map(formatDay);
+    const avgHours = totalsPerDay.length
+      ? (totalsPerDay.reduce((a, b) => a + b, 0) / totalsPerDay.length).toFixed(2)
+      : '0.00';
+    document.getElementById('avg-stat').textContent = avgHours + ' h';
+
+    /* ── Line chart ── */
+    Plotly.newPlot('line-chart',
+      [{
+        type: 'scatter', mode: 'lines+markers',
+        x: days.length ? days : Array.from({length:7}, (_,i) => { const d = new Date(); d.setDate(d.getDate() - 6 + i); return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); }),
+        y: totalsPerDay.length ? totalsPerDay : [0,0,0,0,0,0,0],
+        line:       { color: TEAL, width: 2.5, shape: 'linear' },
+        marker:     { color: TEAL, size: 8, symbol: 'circle',
+                      line: { color: '#fff', width: 2 } },
+        fill:       'tozeroy',
+        fillcolor:  'rgba(78,205,196,0.07)',
+        hovertemplate: '<b>%{x}</b><br>%{y:.2f} h<extra></extra>',
+      }],
+      {
+        ...BASE,
+        xaxis: {
+          gridcolor: GRID, griddash: 'dot', linecolor: 'transparent',
+          zeroline: false, automargin: true,
+          tickfont: { color: DARK, size: 13 },
+          ticklabelstandoff: 8,
+        },
+        yaxis: {
+          gridcolor: GRID, griddash: 'dot', linecolor: 'transparent',
+          zeroline: false, automargin: true,
+          tickfont: { color: DARK, size: 13 },
+          ticksuffix: ' h',
+          ticklabelstandoff: 6,
+          rangemode: 'tozero',
+        },
+        margin: { t: 12, r: 20, b: 72, l: 72 },
+        hovermode: 'x unified', showlegend: false,
+        hoverlabel: { bgcolor: '#fff', bordercolor: TEAL, font: { color: DARK } },
+      },
+      { responsive: true, displayModeBar: false }
+    );
+
+    /* ── Activity rings (concentric multi-ring) ── */
+    /*
+      Each ring = one course, sized relative to that course's fraction of max hours.
+      Rings nest from outer (ring 0) to inner (ring n-1).
+      Domain + hole values are pre-calculated to give equal ring widths and even gaps.
+
+      Outer radii (as fraction of half-plot): 0.500, 0.370, 0.235
+      Inner radii:                            0.395, 0.263, 0.132
+      Ring widths:                            0.105, 0.107, 0.103  ≈ equal
+      Gaps:                                         0.025, 0.028   ≈ even
+    */
+    const ringConf = [
+      { df: 0,     hole: 0.79 },
+      { df: 0.13,  hole: 0.71 },
+      { df: 0.265, hole: 0.56 },
+    ];
+
+    const hasData    = coursesData.length > 0;
+    const totalHrs   = hasData ? coursesData.reduce((s, c) => s + c.hrs, 0) : 1;
+    const ringCount  = Math.min(coursesData.length, 3);
+
+    const ringTraces = [];
+
+    if (!hasData) {
+      /* fallback: single empty ring */
+      ringTraces.push({
+        type: 'pie', values: [1], labels: ['No data yet'],
+        hole: 0.79, domain: { x: [0,1], y: [0,1] },
+        marker: { colors: [TRACK], line: { width: 0 } },
+        textinfo: 'none', showlegend: false, hoverinfo: 'skip',
+      });
+    } else {
+      for (let i = 0; i < ringCount; i++) {
+        const c  = coursesData[i];
+        const rc = ringConf[i];
+        const frac = c.hrs / totalHrs;  /* arc fills proportionally to total weekly hours */
+
+        ringTraces.push({
+          type:      'pie',
+          values:    [frac, 1 - frac],
+          labels:    [c.course_name, ''],
+          marker:    {
+            colors: [RING_PALETTE[i], TRACK],
+            line:   { width: 0 },
+          },
+          hole:      rc.hole,
+          domain:    { x: [rc.df, 1 - rc.df], y: [rc.df, 1 - rc.df] },
+          textinfo:  'none',
+          sort:      false,
+          direction: 'clockwise',
+          rotation:  90,
+          showlegend: false,
+          hovertemplate: [
+            `<b>${c.course_name}</b><br>${c.hrs.toFixed(1)} h<extra></extra>`,
+            '<extra></extra>',
+          ],
+        });
+      }
+
+      /* invisible scatter traces to populate the legend */
+      for (let i = 0; i < ringCount; i++) {
+        ringTraces.push({
+          type: 'scatter', x: [null], y: [null],
+          mode: 'markers',
+          marker: { color: RING_PALETTE[i], size: 11, symbol: 'circle' },
+          name: coursesData[i].course_name,
+          showlegend: true,
+        });
+      }
+    }
+
+    Plotly.newPlot('ring-chart', ringTraces, {
+      ...BASE,
+      margin:     { t: 10, r: 10, b: 38, l: 10 },
+      showlegend: hasData,
+      legend: {
+        orientation: 'h',
+        x: 0.5, xanchor: 'center',
+        y: -0.04,
+        font:    { size: 13, color: 'black' },
+        bgcolor: 'transparent',
+        itemclick: false,
+        itemdoubleclick: false
+      },
+      xaxis: { visible: false },
+      yaxis: { visible: false },
+    }, { responsive: true, displayModeBar: false });
+
+  })();
+  </script>
+
+</body>
+</html>
