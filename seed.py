@@ -1,7 +1,7 @@
 import sqlite3
 import bcrypt
 from datetime import datetime, timedelta
-from models import init_db  
+from database import init_db
 
 def seed_database():
     init_db()  

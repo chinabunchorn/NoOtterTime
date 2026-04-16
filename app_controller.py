@@ -11,6 +11,11 @@ class AppController:
     def __init__(self, db_path="database.db"):
         self._app = Flask(__name__)
         self._app.secret_key = "your_secret_key"
+
+        # Enable cross-origin session cookies
+        self._app.config["SESSION_COOKIE_SAMESITE"] = "None"
+        self._app.config["SESSION_COOKIE_SECURE"] = True
+
         CORS(self._app, supports_credentials=True)
 
         self._auth_manager = AuthManager(db_path)
@@ -97,6 +102,13 @@ class AppController:
             session.clear()
             return jsonify({"status": "success", "message": "Logged out successfully"}), 200
 
+        @self._app.route("/api/me", methods=["GET"])
+        def me():
+            user_id, err = self._get_user_id()
+            if err: return err
+
+            return jsonify({"status": "success", "data": {"username": session.get("username")}}), 200
+
         @self._app.route("/api/courses", methods=["GET"])
         def get_courses():
             user_id, err = self._get_user_id()
@@ -156,6 +168,27 @@ class AppController:
             summary = self._study_manager.get_weekly_study_summary(user_id)
             return jsonify({"status": "success", "data": summary}), 200
 
+        @self._app.route("/api/analytics/daily-hours", methods=["GET"])
+        def daily_hours():
+            user_id, err = self._get_user_id()
+            if err: return err
+
+            conn = self._study_manager._get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT
+                    strftime('%m/%d', DATE(start_time)) AS day,
+                    SUM(actual_minutes) / 60.0          AS hours
+                FROM study_sessions
+                WHERE user_id = ?
+                  AND DATE(start_time) >= DATE('now', '-6 days')
+                GROUP BY DATE(start_time)
+                ORDER BY DATE(start_time)
+            """, (user_id,))
+            data = [{"day": r["day"], "hours": r["hours"]} for r in cursor.fetchall()]
+            conn.close()
+            return jsonify({"status": "success", "data": data}), 200
+
         @self._app.route("/api/analytics/daily-breakdown", methods=["GET"])
         def daily_breakdown():
             user_id, err = self._get_user_id()
@@ -211,6 +244,36 @@ class AppController:
                 "evaluation_id": eval_id,
                 "current_risk": risk_level  
             }), 201
+
+        @self._app.route("/api/moods/burnout", methods=["GET"])
+        def burnout_status():
+            user_id, err = self._get_user_id()
+            if err: return err
+            
+            conn = self._mood_manager._get_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT exhaustion_score, cynicism_score, efficacy_score
+                FROM mood_evaluations
+                WHERE user_id = ?
+                ORDER BY evaluated_at DESC
+                LIMIT 1
+            """, (user_id,))
+            mood = cursor.fetchone()
+            conn.close()
+
+            if mood:
+                score = mood["exhaustion_score"] + mood["cynicism_score"] - mood["efficacy_score"]
+                if score <= 2:
+                    burnout_label = "Low"
+                elif score <= 5:
+                    burnout_label = "Medium"
+                else:
+                    burnout_label = "High"
+            else:
+                burnout_label = "N/A"
+
+            return jsonify({"status": "success", "data": {"label": burnout_label}}), 200
 
         @self._app.route("/api/moods/history", methods=["GET"])
         def mood_history():
