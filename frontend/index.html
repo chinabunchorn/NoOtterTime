@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>NoOtterTime - Timer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-[#222831] flex min-h-screen text-white">
+
+    <div class="flex flex-col justify-center gap-4 px-2">
+
+        <a href="login.html"
+            class="flex bg-[#EEEEEE] text-black text-xl w-[110px] h-[110px] rounded-xl rotate-[-270deg] origin-left items-top justify-center">
+            Log in
+        </a>
+
+        <a href="dashboard.html"
+            class="flex bg-[#EEEEEE] text-black text-xl w-[130px] h-[110px] rounded-xl rotate-[-270deg] origin-left items-top justify-center">
+            Dashboard
+        </a>
+
+    </div>
+
+    <!--------------Main---------------->
+    <div class="flex flex-col w-[100%] items-center justify-center flex-1">
+
+
+        <h1 class="text-5xl mb-8 font-semibold">NoOtterTime</h1>
+
+        <div
+            class="bg-[#EEEEEE] text-gray-700 rounded-full w-[500px] h-[500px] flex flex-col items-center justify-center relative shadow-xl">
+
+            <div class="text-teal-600 text-xl mb-6 flex items-center gap-2">
+                <img src="../static/images/Clock.png" class="w-10">
+                <span class="text-[#54A7A3]">Set Duration</span>
+            </div>
+
+            <!-- Time Inputs -->
+            <div class="flex items-center gap-4 text-5xl font-light">
+
+                <input id="hours" type="number" min="0" value="0"
+                    class="w-20 text-center bg-transparent border rounded-lg">
+
+                <span>:</span>
+
+                <input id="minutes" type="number" min="0" value="0"
+                    class="w-20 text-center bg-transparent border rounded-lg">
+
+                <span>:</span>
+
+                <input id="seconds" type="number" min="0" value="0"
+                    class="w-20 text-center bg-transparent border rounded-lg">
+            </div>
+
+            <div class="flex gap-12 mt-2 text-sm text-gray-500">
+                <span>Hours</span>
+                <span>Minutes</span>
+                <span>Seconds</span>
+            </div>
+
+            <!-- Subject Dropdown -->
+            <select id="courseDropdown" class="mt-6 px-4 py-2 border rounded-lg">
+                <!--------------Waiting for API------------>
+                <option>Loading..</option>
+            </select>
+
+            <img src="../static/images/logo.png" class="absolute right-[-40px] bottom-[-20px] w-60">
+
+        </div>
+
+        <!---------------Modal------------------>
+        <div id="courseModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg w-[350px] h-[200px] translate-x-[70px]">
+                <h2 class="text-lg mb-4 text-[#000000]">Create Course</h2>
+
+                <input id="courseNameInput" type="text" placeholder="Course name"
+                    class="w-full border px-3 py-2 mb-4 rounded text-[#000000]" />
+
+                <div class="flex justify-end gap-2">
+                    <button onclick="closeModal()" class="px-3 py-1 bg-gray-300 rounded">
+                        Cancel
+                    </button>
+                    <button onclick="createCourse()" class="px-3 py-1 bg-[#64CCC5] text-white rounded">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Button -->
+        <div class="mt-8 flex gap-4">
+
+            <button id="startBtn" onclick="startTimer()"
+                class="bg-[#64CCC5] hover:bg-teal-600 text-[#EEEEEE] px-12 py-3 rounded-full text-xl">
+                Start Timer
+            </button>
+
+            <button id="pauseBtn" onclick="pauseTimer()"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-3 rounded-full text-xl hidden">
+                Pause
+            </button>
+
+            <button id="stopBtn" onclick="stopTimer()"
+                class="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full text-xl hidden">
+                Stop
+            </button>
+
+        </div>
+
+    </div>
+
+</body>
+
+<script>
+
+    function formatDate(date) {
+        return date.toISOString().slice(0, 19).replace("T", " ");
+    }
+
+    let interval;
+    let totalSeconds = 0;
+    let isPaused = false;
+    let startTime = null;
+    let endTime = null;
+    let initialSeconds = 0;
+
+    function startTimer() {
+        let h = parseInt(document.getElementById("hours").value) || 0;
+        let m = parseInt(document.getElementById("minutes").value) || 0;
+        let s = parseInt(document.getElementById("seconds").value) || 0;
+
+        totalSeconds = h * 3600 + m * 60 + s;
+        initialSeconds = totalSeconds;
+
+        if (totalSeconds <= 0) {
+            alert("Please set a time!");
+            return;
+        }
+
+        startTime = new Date();
+
+        document.getElementById("startBtn").classList.add("hidden");
+        document.getElementById("pauseBtn").classList.remove("hidden");
+        document.getElementById("stopBtn").classList.remove("hidden");
+
+        isPaused = false;
+
+        runTimer();
+    }
+
+    function runTimer() {
+        clearInterval(interval);
+
+        interval = setInterval(() => {
+            if (!isPaused) {
+                if (totalSeconds <= 0) {
+                    clearInterval(interval);
+                    alert("⏰ Time's up!");
+                    stopTimer();
+                    resetUI();
+                    return;
+                }
+
+                totalSeconds--;
+
+                let h = Math.floor(totalSeconds / 3600);
+                let m = Math.floor((totalSeconds % 3600) / 60);
+                let s = totalSeconds % 60;
+
+                document.getElementById("hours").value = h;
+                document.getElementById("minutes").value = m;
+                document.getElementById("seconds").value = s;
+            }
+        }, 1000);
+    }
+
+    function pauseTimer() {
+        isPaused = !isPaused;
+
+        document.getElementById("pauseBtn").innerText = isPaused ? "Resume" : "Pause";
+    }
+
+    async function stopTimer() {
+        clearInterval(interval);
+
+        endTime = new Date();
+
+        const actualSeconds = initialSeconds - totalSeconds;
+        const actualMinutes = Math.round(actualSeconds / 60);
+
+        const goalMinutes = Math.round(initialSeconds / 60);
+
+        const courseId = document.getElementById("courseDropdown").value;
+
+        if (!courseId) {
+            alert("Please select a course");
+            return;
+        }
+
+        const data = {
+            course_id: parseInt(courseId),
+            start_time: formatDate(startTime),
+            end_time: formatDate(endTime),
+            goal_minutes: goalMinutes,
+            actual_minutes: actualMinutes,
+            task_type: "study"
+        };
+
+        try {
+            const res = await fetch("http://127.0.0.1:5000/api/sessions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+            console.log("RESPONSE:", result);
+
+            if (res.ok) {
+                alert("Session saved!");
+            } else {
+                alert(result.error || "Failed to save");
+            }
+
+        } catch (err) {
+            console.error(err);
+        }
+
+        // reset UI
+        totalSeconds = 0;
+        document.getElementById("hours").value = 0;
+        document.getElementById("minutes").value = 0;
+        document.getElementById("seconds").value = 0;
+
+        resetUI();
+    }
+
+    function resetUI() {
+        document.getElementById("startBtn").classList.remove("hidden");
+        document.getElementById("pauseBtn").classList.add("hidden");
+        document.getElementById("stopBtn").classList.add("hidden");
+
+        document.getElementById("pauseBtn").innerText = "Pause";
+    }
+
+    // GET Courses
+    async function loadCourses() {
+        try {
+            const res = await fetch("http://127.0.0.1:5000/api/courses", {
+                method: "GET",
+                credentials: "include"
+            });
+
+            const result = await res.json();
+
+            const dropdown = document.getElementById("courseDropdown");
+            dropdown.innerHTML = '<option>Select Subject</option>';
+
+            result.data.forEach(course => {
+                const option = document.createElement("option");
+                option.value = course.course_id;
+                option.textContent = course.course_name;
+                dropdown.appendChild(option);
+            });
+
+            // ADD Courses button
+            const addOption = document.createElement("option");
+            addOption.value = "add_new";
+            addOption.textContent = "+ Add Course";
+            dropdown.appendChild(addOption);
+
+
+        } catch (err) {
+            console.error("Failed to load courses:", err);
+        }
+    }
+
+    loadCourses();
+
+    //Modal Control
+    function openModal() {
+        document.getElementById("courseModal").classList.remove("hidden");
+    }
+
+    function closeModal() {
+        document.getElementById("courseModal").classList.add("hidden");
+    }
+
+    // Detect when user clike ADD Courses
+    document.getElementById("courseDropdown").addEventListener("change", (e) => {
+        if (e.target.value === "add_new") {
+            openModal();
+
+            e.target.value = "";
+        }
+    });
+
+    //ADD Courses
+    async function createCourse() {
+        const courseName = document.getElementById("courseNameInput").value;
+
+        if (!courseName.trim()) {
+            alert("Course name is required");
+            return;
+        }
+
+        const res = await fetch("http://127.0.0.1:5000/api/courses", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include",
+            body: JSON.stringify({
+                course_name: courseName
+            })
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+            closeModal();
+
+            await loadCourses();
+
+            document.getElementById("courseDropdown").value = result.course_id;
+        } else {
+            alert(result.error || "Failed to create course");
+        }
+    }
+
+
+</script>
+
+
+
+</html>
