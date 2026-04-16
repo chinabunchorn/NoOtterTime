@@ -1,5 +1,6 @@
 import sqlite3
-from flask import Flask, request, jsonify, session
+import os
+from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
 import bcrypt
 
@@ -12,9 +13,8 @@ class AppController:
         self._app = Flask(__name__)
         self._app.secret_key = "your_secret_key"
 
-        # Enable cross-origin session cookies
-        self._app.config["SESSION_COOKIE_SAMESITE"] = "None"
-        self._app.config["SESSION_COOKIE_SECURE"] = True
+        self._app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+        self._app.config["SESSION_COOKIE_SECURE"] = False
 
         CORS(self._app, supports_credentials=True)
 
@@ -34,6 +34,15 @@ class AppController:
         return user_id, None
 
     def _register_routes(self):
+        frontend_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend")
+
+        @self._app.route("/")
+        def index():
+            return send_from_directory(frontend_dir, "index.html")
+
+        @self._app.route("/<path:filename>")
+        def serve_frontend(filename):
+            return send_from_directory(frontend_dir, filename)
 
         @self._app.route("/api/signup", methods=["POST"])
         def signup():
@@ -305,7 +314,8 @@ class AppController:
     # --------------------------------------------------
 
     def run(self):
-        self._app.run(debug=True)
+        port = int(os.environ.get("PORT", 5000))
+        self._app.run(host="0.0.0.0", port=port, debug=False)
 
 
 if __name__ == "__main__":

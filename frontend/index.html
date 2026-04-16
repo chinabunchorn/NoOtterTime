@@ -208,7 +208,7 @@
         };
 
         try {
-            const res = await fetch("http://127.0.0.1:5000/api/sessions", {
+            const res = await fetch("/api/sessions", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -250,7 +250,7 @@
     // GET Courses
     async function loadCourses() {
         try {
-            const res = await fetch("http://127.0.0.1:5000/api/courses", {
+            const res = await fetch("/api/courses", {
                 method: "GET",
                 credentials: "include"
             });
@@ -308,7 +308,7 @@
             return;
         }
 
-        const res = await fetch("http://127.0.0.1:5000/api/courses", {
+        const res = await fetch("/api/courses", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

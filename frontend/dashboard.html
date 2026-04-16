@@ -256,7 +256,7 @@
     }
 
     async function apiFetch(url) {
-      const res = await fetch(`http://127.0.0.1:5000${url}`, { credentials: 'include' });
+      const res = await fetch(url, { credentials: 'include' });
       if (res.status === 401) {
         window.location.href = 'login.html';
         return null;
@@ -408,7 +408,7 @@
     /* ── Init ── */
 
     async function init() {
-      const meRes = await fetch('http://127.0.0.1:5000/api/me', { credentials: 'include' });
+      const meRes = await fetch('/api/me', { credentials: 'include' });
       if (!meRes.ok) {
         window.location.href = 'login.html';
         return;
@@ -426,7 +426,7 @@
     /* ── Logout ── */
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
-      await fetch('http://127.0.0.1:5000/api/logout', { method: 'POST', credentials: 'include' });
+      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
       window.location.href = 'login.html';
     });
 
