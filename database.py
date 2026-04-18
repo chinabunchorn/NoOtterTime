@@ -57,6 +57,19 @@ def init_db():
     )
     """)
 
+    #5. Schedules stuff
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS schedules (
+        schedule_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        course_id INTEGER NOT NULL,
+        title TEXT,
+        date TEXT NOT NULL,
+        start_time TEXT,
+        end_time TEXT
+    )
+    """)
+
     conn.commit()
     conn.close()
     print("Database create with all tables")

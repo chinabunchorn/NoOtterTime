@@ -332,3 +332,57 @@ def get_smart_suggestion(user_id, days=7):
         "reason": "All goals met or no data",
         "deficit_minutes": 0
     }
+
+def create_schedule(user_id, data) :
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    query = '''
+        INSERT INTO schedules 
+        (user_id, course_id, title, date, start_time, end_time)
+        VALUES (?, ?, ?, ?, ?, ?)
+    '''
+
+    cursor.execute(query, (
+        user_id,
+        data['course_id'],
+        data.get('title', ''),
+        data['date'],
+        data.get('start_time'),
+        data.get('end_time')
+    ))
+
+    schedule_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+
+    return schedule_id
+
+def get_schedules(user_id):
+    conn = get_db_connection()
+
+    query = '''
+        SELECT s.*, c.course_name
+        FROM schedules s
+        JOIN courses c ON s.course_id = c.course_id
+        WHERE s.user_id = ?
+        ORDER BY s.date ASC
+    '''
+
+    schedules = conn.execute(query, (user_id,)).fetchall()
+    conn.close()
+
+    return [dict(row) for row in schedules]
+
+def delete_schedule(user_id, schedule_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    query = '''
+        DELETE FROM schedules
+        WHERE schedule_id = ? AND user_id = ?
+    '''
+
+    cursor.execute(query, (schedule_id, user_id))
+    conn.commit()
+    conn.close()

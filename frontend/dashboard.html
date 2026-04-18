@@ -59,6 +59,9 @@
         gap:35px;
         padding: 20px;
     }
+    .nav a {
+      text-decoration: none;
+    }
     .nav-item {
         width: 55px; height:55px;
         display: flex;
@@ -191,12 +194,16 @@
     <div class="sidebar">
       <div class="logo"><img src="/static/images/logo.png" width="50px" height="50px"></div>
 
-      <div class="nav">
-          <div class="nav-item active"><img src="/static/images/dashboard.svg"></div>
-          <div class="nav-item"><img src="/static/images/calendar.svg"></div>
-          <div class="nav-item"><img src="/static/images/clock.svg"><a href="index.html"></a></div>
-          <div class="nav-item"><img src="/static/images/user.svg"></div>
-      </div>
+        <div class="nav">
+          <a href="/dashboard.html" class="nav-item active">
+            <img src="/static/images/dashboard.svg" />
+          </a>
+          <a href="/schedule.html" class="nav-item"><img src="/static/images/calendar.svg" /></a>
+          <a href="/index.html" class="nav-item">
+            <img src="/static/images/clock.svg" />
+          </a>
+          <a href="" class="nav-item"><img src="/static/images/user.svg" /></a>
+        </div>
 
       <div class="logout" id="logout-btn"><img src="/static/images/logout.svg" height="45px" width="45px"></div>
     </div>
