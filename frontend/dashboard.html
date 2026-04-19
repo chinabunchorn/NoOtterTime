@@ -10,7 +10,7 @@
 
     :root {
       --bg:     #222831;
-      --card:   #2c3543;
+      --card:   #354257;
       --border: #37373e;
 
       --dark:   #EEEEEE;
@@ -96,22 +96,22 @@
       display: flex;
       flex-direction: row;
       justify-content: space-between;
-      font-size: 23px;
-      margin-bottom: auto;
+      align-items: center;
+      font-size: 14px;
     }
     .card-header img {
-      height: 25px; width: 25px;
+      height: 20px; width: 20px;
+      opacity: 0.8;
     }
-    .card-body {
-      position: fixed;
-      margin:auto;
-    }
-    
     .streak {
       display: flex;
-      flex-direction:column;
-      justify-content:center; padding:20px 36px;
-      background:var(--red); border-radius:20px;
+      flex-direction: column;
+      padding: 14px 20px;
+      background: var(--red);
+      border-radius: 20px;
+    }
+    .streak-body {
+      margin-top: 8px;
     }
 
     /* .lbl {
@@ -178,74 +178,6 @@
       animation: blink 2s ease-in-out infinite;
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
-
-    #mood-popup span {
-
-  font-size: 36px;
-  margin: 8px;
-  cursor: pointer;
-  transition: 0.2s;
-
-}
-
-#mood-popup span:hover {
-
-  transform: scale(1.2);
-
-}
-
-#mood-popup span.selected {
-
-  filter: grayscale(100%);
-  opacity: 0.4;
-
-}
-
-.mood-submit-btn {
-
-  width: 100%;
-
-  margin-top: 24px;
-
-  padding: 16px;
-
-  border: none;
-
-  border-radius: 16px;
-
-  background: linear-gradient(135deg,#64CCC5,#4ecdc4);
-
-  color: white;
-
-  font-size: 1.2rem;
-
-  font-weight: 600;
-
-  letter-spacing: 0.5px;
-
-  cursor: pointer;
-
-  transition: all 0.2s ease;
-
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-
-}
-
-.mood-submit-btn:hover {
-
-  transform: translateY(-2px);
-
-  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-
-}
-
-.mood-submit-btn:active {
-
-  transform: translateY(0px);
-
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-
-}
   </style>
 </head>
 
@@ -286,7 +218,7 @@
   ">
     <div style="display:flex; align-items:center; gap:16px; margin-left: 20px;">
       <!-- <img src="../static/images/logo.png" alt="Logo" style="width: 80px; height: auto;"> -->
-      <span style="font-size:3.2rem; font-weight:400; color:var(--dark);">
+      <span style="font-size:3.2rem; font-weight:600; color:var(--dark);">
         Hello, <span id="username-display">…</span>!
       </span>
     </div>
@@ -301,7 +233,7 @@
   <div style="
     flex: 1; min-height: 0;
     display: grid;
-    grid-template-rows: 1fr 260px;
+    grid-template-rows: 1fr 240px;
     gap: 16px;
     padding: 20px 32px 24px;
   ">
@@ -313,16 +245,16 @@
       <div class="card" style="display:flex; flex-direction:column; padding:18px 22px 10px;">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
           <div>
-            <p class="lbl" style="color:var(--dark); font-size: 14px;">Average Study Hours</p>
+            <p class="lbl" style="color:var(--dark); font-size: 2rem; font-weight:800;">Average Study Hours</p>
             <p id="last-updated" style="font-size:11px; color:var(--muted); margin-top:3px;">
               <span class="live-dot"></span>Live
             </p>
           </div>
           <div style="text-align:right;">
-            <p class="lbl" style="color:var(--dark); font-size: 14px;">Total Average</p>
+            <p class="lbl" style="color:var(--teal); font-size: 1.5rem; font-weight:600;">Total Average</p>
             <p id="avg-stat" style="
-              font-size:2.2rem; font-weight:800;
-              color:var(--dark); line-height:1.1; margin-top:4px;
+              font-size:1.5rem; font-weight:600;
+              color:white; line-height:1.1; margin-top:2px; text-align:center;
             ">—</p>
           </div>
         </div>
@@ -335,12 +267,12 @@
         padding:16px 16px 6px;
       ">
         <p style="
-          font-size: 1.5rem;
+          font-size: 1.3rem;
           font-weight: 800;
           color: var(--dark);
-          text-align: center;
+          text-align: left;
           margin-bottom: 4px;
-        ">Study Time Per Subject</p>
+        ">Study Time per Subject</p>
         <div id="ring-chart" style="flex:1; min-height:0;"></div>
       </div>
     </div>
@@ -365,111 +297,48 @@
         "><span id="streak-count">—</span>&nbsp;<span style="font-size:3.5rem;">day</span></p>
         <p style="font-size:2.5rem; font-weight:400; color:#fff;">streak !</p>
       </div> -->
+      <!-- Streak — red -->
       <div class="streak">
-      <div class="card-header">
-        <p>Streak</p>
-        <img src="./static/images/Fire.svg">
-      </div>
-      
-      <div class="card-body">
-        <p style="
-          font-size:3.5rem; font-weight:900;
-          color:#742A2E; line-height:1.05; margin:4px 0 2px;
-        "><span id="streak-count">—</span>&nbsp;<span style="font-size:3.5rem;">Day</span>
-        </p>
-        <p style="font-size:2.5rem; font-weight:400; color:#fff;">Streak</p>        
-      </div>
-
+        <div class="card-header">
+          <p style="font-size: 1.2rem; font-weight:600;">Streak</p>
+          <img src="/static/images/Fire.svg" height="25px" width="25px">
+        </div>
+        <div class="streak-body">
+          <p style="font-size:2.6rem; font-weight:900; color:#742A2E; line-height:1.05;">
+            <span id="streak-count">—</span> Day
+          </p>
+          <p style="font-size:2.6rem; font-weight:800; color:#fff;">Streak</p>
+        </div>
       </div>
 
       <!-- Burnout — purple -->
       <div class="streak" style="background:var(--purple)">
         <div class="card-header">
-          <p>Burn out Detection</p>
-          <img src="./static/images/burnout.svg">
+          <p style="font-size: 1.2rem; font-weight:600;">Burnout Detection</p>
+          <img src="/static/images/burnout.svg" height="25px" width="25px">
         </div>
-        <div class="card-body">
-          <p style="font-size:3rem; font-weight:800; color:#fff; text-align:center; line-height:1.2;">
-            Burn Out Risk
+        <div class="streak-body">
+          <p style="font-size:2.6rem; font-weight:800; color:#fff; line-height:1.2;">
+            Burnout<br>Risk
           </p>
-          <p id="burnout-text" style="font-size:2.5rem; font-weight:500; color:#3B3978;">—</p>          
+          <p id="burnout-text" style="font-size:2.6rem; font-weight:700; color:#3B3978;">—</p>
         </div>
-
       </div>
 
       <!-- Suggestion — mint -->
-      <div class="streak" style="background: var(--mint);">
+      <div class="streak" style="background:var(--mint);">
         <div class="card-header">
-          <p>Suggestion</p>
-          <img src="./static/images/suggestion.svg">
+          <p style="font-size: 1.2rem; font-weight:600; ">Suggestion</p>
+          <img src="/static/images/suggestion.svg" height="25px" width="25px">
         </div>
-        <div class="card-body">
-          <p style="
-            font-size:1.9rem; font-weight:400; color:var(--dark);
-            margin-top:8px; line-height:1.25;
-          " id="suggestion-text">—</p>
+        <div class="streak-body">
+          <p style="font-size:2.6rem; font-weight:800; color:#fff; line-height:1.25;" id="suggestion-text">—</p>
         </div>
-
       </div>
 
     </div>
   </div>
-
-  <script>
-
-    async function submitMood(){
-
-  if(
-    moodScores.exhaustion === undefined ||
-    moodScores.cynicism === undefined ||
-    moodScores.efficacy === undefined
-  ){
-    alert("Please answer all questions");
-    return;
-  }
-
-  await fetch("/api/moods",{
-
-    method:"POST",
-
-    credentials:"include",
-
-    headers:{
-      "Content-Type":"application/json"
-    },
-
-    body:JSON.stringify({
-
-      exhaustion_score:moodScores.exhaustion,
-
-      cynicism_score:moodScores.cynicism,
-
-      efficacy_score:moodScores.efficacy
-
-    })
-
-  });
-
-  document.getElementById("mood-popup").style.display = "none";
-
-  refresh();
-
-}
-
-    async function checkMoodTrigger() {
-
-  const res = await fetch("/api/moods/should-trigger", {
-    credentials: "include"
-  });
-
-  const data = await res.json();
-
-  if (data.data.should_trigger) {
-
-    document.getElementById("mood-popup").style.display = "flex";
-
-  }
-}
+<script>
   (function () {
     const TEAL          = '#4ecdc4';
     const DARK          = '#1a1a2e';
@@ -516,36 +385,46 @@
       );
       const days = rawDays.map(formatDay);
 
-      const avgHours = totalsPerDay.length
-        ? (totalsPerDay.reduce((a, b) => a + b, 0) / totalsPerDay.length).toFixed(2)
-        : '0.00';
-      document.getElementById('avg-stat').textContent = avgHours + ' h';
+      const avgDecimal = totalsPerDay.length
+        ? totalsPerDay.reduce((a, b) => a + b, 0) / totalsPerDay.length
+        : 0;
+      const totalMins = Math.round(avgDecimal * 60);
+      const avgHrs  = Math.floor(totalMins / 60);
+      const avgMins = totalMins % 60;
+      document.getElementById('avg-stat').textContent = `${avgHrs}h ${String(avgMins).padStart(2,'0')}m`;
 
       const emptyDays = Array.from({ length: 7 }, (_, i) => {
         const d = new Date(); d.setDate(d.getDate() - 6 + i);
         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       });
 
+      const fmtHm = h => `${Math.floor(h)}h ${Math.round((h % 1) * 60)}m`;
+      const customdata = totalsPerDay.length
+        ? totalsPerDay.map(fmtHm)
+        : ['0h 0m','0h 0m','0h 0m','0h 0m','0h 0m','0h 0m','0h 0m'];
+
       Plotly.react('line-chart',
         [{
           type: 'scatter', mode: 'lines+markers',
           x: days.length   ? days          : emptyDays,
           y: totalsPerDay.length ? totalsPerDay : [0,0,0,0,0,0,0],
+          customdata,
           line:       { color: TEAL, width: 2.5, shape: 'spline' },
           marker:     { color: TEAL, size: 8, symbol: 'circle', line: { color: '#fff', width: 2 } },
           fill:       'tozeroy',
           fillcolor:  'rgba(78,205,196,0.07)',
-          hovertemplate: '<b>%{x}</b><br>%{y:.2f} h<extra></extra>',
+          hovertemplate: '<b>%{x}</b><br>%{customdata}<extra></extra>',
         }],
         {
           ...BASE,
           xaxis: {
-            gridcolor: 'rgba(255,255,255,0.05)', linecolor: 'transparent',
+            gridcolor: 'transparent', linecolor: 'transparent',
             zeroline: false, automargin: true,
             tickfont: { color: '#94a3b8' }, ticklabelstandoff: 8,
           },
           yaxis: {
-            gridcolor: 'rgba(255,255,255,0.05)', linecolor: 'transparent',
+            gridcolor: 'rgba(255,255,255,0.18)', griddash: 'dash',
+            linecolor: 'transparent',
             zeroline: false, automargin: true,
             tickfont: { color: '#94a3b8' }, ticksuffix: ' h',
             ticklabelstandoff: 6, rangemode: 'tozero',
@@ -596,7 +475,7 @@
             textinfo: 'none', sort: false, direction: 'clockwise', rotation: 90,
             showlegend: false,
             hovertemplate: [
-              `<b>${c.course_name}</b><br>${c.hrs.toFixed(1)} h<extra></extra>`,
+              `<b>${c.course_name}</b><br>${Math.floor(c.hrs)}h ${Math.round((c.hrs % 1) * 60)}m<extra></extra>`,
               '<extra></extra>',
             ],
           });
@@ -659,7 +538,6 @@
       document.getElementById('username-display').textContent = me.data.username;
 
       await refresh();
-      await checkMoodTrigger();
 
       document.getElementById('loading-overlay').style.display = 'none';
 
@@ -674,81 +552,8 @@
     });
 
     init();
-
-    window.moodScores = {};
-
-    window.setMood = function(event, type, value){
-
-  window.moodScores[type] = Number(value);
-
-  const group = event.target.parentElement.children;
-
-  for(let i=0;i<group.length;i++){
-    group[i].classList.remove("selected");
-  }
-
-  event.target.classList.add("selected");
-
-  console.log("Mood updated:", type, value);
-
-}
   })();
   </script>
-  <div id="mood-popup" style="
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.5);
-    align-items:center;
-    justify-content:center;
-    z-index:9999;
-    ">
 
-  <div style="
-background:white;
-padding:40px;
-border-radius:20px;
-width:600px;
-position:relative;
-z-index:10000;
-">
-
-<h2>Mood Check</h2>
-
-<p>How exhausted do you feel?</p>
-
-<div>
-<span onclick="setMood(event,'exhaustion',3)">😵</span>
-<span onclick="setMood(event,'exhaustion',2)">😟</span>
-<span onclick="setMood(event,'exhaustion',1)">😐</span>
-<span onclick="setMood(event,'exhaustion',0)">🙂</span>
-</div>
-
-
-<p>How unmotivated do you feel to start studying?</p>
-
-<div>
-<span onclick="setMood(event,'cynicism',3)">😵</span>
-<span onclick="setMood(event,'cynicism',2)">😟</span>
-<span onclick="setMood(event,'cynicism',1)">😐</span>
-<span onclick="setMood(event,'cynicism',0)">🙂</span>
-</div>
-
-
-<p>How much do you feel like you're not understanding your studies?</p>
-
-<div>
-<span onclick="setMood(event,'efficacy',3)">😵</span>
-<span onclick="setMood(event,'efficacy',2)">😟</span>
-<span onclick="setMood(event,'efficacy',1)">😐</span>
-<span onclick="setMood(event,'efficacy',0)">🙂</span>
-</div>
-
-<button onclick="submitMood()" class="mood-submit-btn">
-Submit
-</button>
-
-</div>
-</div>
 </body>
 </html>
