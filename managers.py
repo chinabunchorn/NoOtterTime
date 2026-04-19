@@ -196,8 +196,8 @@ class StudyManager(BaseManager):
                 break
         return streak
 
-    def get_study_distribution(self, user_id, days=7):
-        """Total study time per course for the last N days (pie chart data)."""
+    def get_study_distribution(self, user_id, days=6):
+        """Total study time per course for the last 7 days (pie chart data)."""
         conn = self._get_connection()
         modifier = f'-{days} days'
         distribution = conn.execute('''
