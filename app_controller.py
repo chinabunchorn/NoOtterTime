@@ -330,6 +330,77 @@ class AppController:
             dataset = self._mood_manager.get_training_data(user_id)
             return jsonify({"status": "success", "data": dataset}), 200
         
+        @self._app.route("/api/schedules", methods=["POST"])
+        def create_schedule():
+            user_id, err = self._get_user_id()
+            if err: return err
+
+            data = request.get_json()
+
+            required=["course_id", "date"]
+            for f in required :
+                if f not in data:
+                    return jsonify({"error" : f"Missing {f}"}), 400
+                
+            conn = self._study_manager._get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                INSERT INTO schedules (user_id, course_id, title, date, start_time, end_time)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                user_id,
+                data["course_id"],
+                data.get("title", ""),
+                data["date"],
+                data.get("start_time"),
+                data.get("end_time")
+            ))
+
+            conn.commit()
+            schedule_id = cursor.lastrowid
+            conn.close()
+
+            return jsonify({"status": "success", "schedule_id": schedule_id}), 201
+        
+        @self._app.route("/api/schedules", methods=["GET"])
+        def get_schedules():
+            user_id, err = self._get_user_id()
+            if err: return err
+
+            conn = self._study_manager._get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                SELECT s.*, c.course_name
+                FROM schedules s
+                JOIN courses c ON s.course_id = c.course_id
+                WHERE s.user_id = ?
+            """, (user_id,))
+
+            data = [dict(row) for row in cursor.fetchall()]
+            conn.close()
+
+            return jsonify({"status": "success", "data": data}), 200
+        
+        @self._app.route("/api/schedules/<int:schedule_id>", methods=["DELETE"])
+        def delete_schedule(schedule_id):
+            user_id, err = self._get_user_id()
+            if err: return err
+
+            conn = self._study_manager._get_connection()
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                DELETE FROM schedules
+                WHERE schedule_id = ? AND user_id = ?
+            """, (schedule_id, user_id))
+
+            conn.commit()
+            conn.close()
+
+            return jsonify({"status": "success"}), 200
+        
         @self._app.route("/api/moods/should-trigger", methods=["GET"])
         def check_mood_trigger():
 

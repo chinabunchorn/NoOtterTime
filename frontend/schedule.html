@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Study Calendar</title>
+
+    <!-- FullCalendar -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Styling -->
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #0f172a;
+        color: white;
+        margin: 0;
+        padding-left: 110px;
+        height: 100%;
+      }
+
+      /* Sidebar */
+      .sidebar-wrapper {
+        position: fixed;
+        left: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 100vh;
+      }
+      .sidebar {
+        width: 80px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 90vh;
+        background: linear-gradient(180deg, #a288e3, #7f5bdc);
+        padding: 20px 0;
+        border-radius: 20px;
+      }
+      .logo {
+        margin-bottom: auto;
+      }
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 35px;
+        padding: 20px;
+      }
+      .nav-item {
+        width: 55px;
+        height: 55px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50px;
+        transition: 0.2s;
+        cursor: pointer;
+      }
+      .nav-item img {
+        width: 30px;
+        height: 30px;
+      }
+      .nav-item:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+      .nav-item.active {
+        background: #5a5393;
+      }
+      .logout {
+        margin-top: auto;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+      }
+
+      header {
+        padding: 30px 20px;
+        font-size: 30px;
+        font-weight: bold;
+      }
+
+      /* Modal */
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+
+        justify-content: center;
+        align-items: center;
+
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(10px);
+
+        z-index: 9999;
+
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+
+      .modal.show {
+        display: flex;
+        opacity: 1;
+      }
+
+      /* CARD */
+      .modal-card {
+        width: 380px;
+        border-radius: 16px;
+
+        background: rgba(2, 6, 23, 0.85);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+
+        box-shadow:
+          0 10px 30px rgba(0, 0, 0, 0.6),
+          0 0 0 1px rgba(255, 255, 255, 0.03);
+
+        animation: modalPop 0.25s ease;
+      }
+
+      /* HEADER */
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        padding: 18px 20px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      }
+
+      .modal-header h2 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      /* CLOSE BUTTON */
+      .close-btn {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        font-size: 18px;
+        cursor: pointer;
+      }
+
+      .close-btn:hover {
+        color: white;
+      }
+
+      /* BODY */
+      .modal-body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .modal-body label {
+        font-size: 12px;
+        color: #94a3b8;
+      }
+
+      .modal-body input,
+      .modal-body select {
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        background: rgba(15, 23, 42, 0.6);
+        color: white;
+      }
+
+      /* TIME ROW */
+      .time-row {
+        display: flex;
+        gap: 10px;
+      }
+
+      .time-row div {
+        flex: 1;
+      }
+
+      /* FOOTER */
+      .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+
+        padding: 16px 20px;
+        border-top: 1px solid rgba(148, 163, 184, 0.1);
+      }
+
+      /* BUTTONS */
+      .btn {
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .btn.primary {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        color: white;
+      }
+
+      .btn.primary:hover {
+        opacity: 0.9;
+      }
+
+      .btn.secondary {
+        background: transparent;
+        color: #94a3b8;
+      }
+
+      .btn.secondary:hover {
+        color: white;
+      }
+
+      /* ANIMATION */
+      @keyframes modalPop {
+        from {
+          transform: scale(0.95) translateY(10px);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+        }
+      }
+
+      input,
+      select {
+        width: 90%;
+        margin-top: 10px;
+        padding: 8px;
+        background: #0f172a;
+        border: 1px solid #334155;
+        color: white;
+        border-radius: 6px;
+      }
+
+      /* button {
+        margin-top: 15px;
+        padding: 10px;
+        width: 100%;
+        background: #4f46e5;
+        border: none;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #4338ca;
+      } */
+      #calendar {
+        max-width: 1300px;
+        margin: 30px auto;
+        background: #020617;
+        padding: 20px;
+        border-radius: 12px;
+      }
+      .fc {
+        background: transparent;
+        color: #e2e8f0;
+        z-index: 1;
+      }
+
+      .fc-theme-standard .fc-scrollgrid,
+      .fc-theme-standard td,
+      .fc-theme-standard th {
+        border-color: rgba(148, 163, 184, 0.15);
+      }
+
+      /* Day headers (Sun, Mon, etc.) */
+      .fc-col-header-cell {
+        background: rgba(2, 6, 23, 0.8);
+        color: #94a3b8;
+        font-weight: 500;
+        font-size: 12px;
+      }
+
+      /* Day cells */
+      .fc-daygrid-day {
+        background: rgba(2, 6, 23, 0.6);
+        transition: background 0.2s ease;
+      }
+
+      /* Hover effect */
+      .fc-daygrid-day:hover {
+        background: rgba(79, 70, 229, 0.08);
+      }
+
+      /* Today highlight */
+      .fc-day-today {
+        background: rgba(79, 70, 229, 0.15) !important;
+      }
+
+      /* Date numbers */
+      .fc-daygrid-day-number {
+        color: #94a3b8;
+        font-size: 12px;
+      }
+      .fc .fc-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      /* Title (April 2026) */
+      .fc .fc-toolbar-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #e2e8f0;
+      }
+
+      /* Button group spacing */
+      .fc .fc-button-group {
+        display: inline-flex;
+        gap: 8px;
+      }
+
+      /* Base button style */
+      .fc .fc-button {
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.15);
+        color: #cbd5f5;
+
+        padding: 6px 12px;
+        border-radius: 8px;
+
+        font-size: 13px;
+        transition: all 0.2s ease;
+      }
+
+      /* Hover */
+      .fc .fc-button:hover {
+        background: rgba(79, 70, 229, 0.2);
+        border-color: rgba(79, 70, 229, 0.4);
+        color: white;
+      }
+
+      /* Active (selected view) */
+      .fc .fc-button-active {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        border: none;
+        color: white;
+      }
+
+      /* Today button (highlight) */
+      .fc .fc-today-button {
+        background: rgba(79, 70, 229, 0.15);
+        border-color: rgba(79, 70, 229, 0.4);
+      }
+      .fc-event {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        border: none;
+        border-radius: 6px;
+        padding: 2px 6px;
+        font-size: 12px;
+      }
+
+      /* Event hover */
+      .fc-event:hover {
+        opacity: 0.9;
+      }
+
+      /* Event text */
+      .fc-event-title {
+        font-weight: 500;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar-wrapper">
+      <div class="sidebar">
+        <div class="logo">
+          <img src="/static/images/logo.png" width="50px" height="50px" />
+        </div>
+
+        <div class="nav">
+          <a href="/dashboard.html" class="nav-item">
+            <img src="/static/images/dashboard.svg" />
+          </a>
+          <a href="/schedule.html" class="nav-item active"
+            ><img src="/static/images/calendar.svg"
+          /></a>
+          <a href="/index.html" class="nav-item">
+            <img src="/static/images/clock.svg" />
+          </a>
+          <a href="" class="nav-item"><img src="/static/images/user.svg" /></a>
+        </div>
+
+        <div class="logout" id="logout-btn">
+          <img src="/static/images/logout.svg" height="45px" width="45px" />
+        </div>
+      </div>
+    </div>
+
+    <header>Study Schedule <span id="username"></span></header>
+
+    <div id="calendar"></div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Add Schedule</h2>
+          <button class="close-btn" onclick="closeModal()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <label>Course</label>
+          <select id="courseSelect"></select>
+
+          <label>Title</label>
+          <input type="text" id="title" placeholder="Optional title" />
+
+          <div class="time-row">
+            <div>
+              <label>Start</label>
+              <input type="time" id="startTime" />
+            </div>
+            <div>
+              <label>End</label>
+              <input type="time" id="endTime" />
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn secondary" onclick="closeModal()">Cancel</button>
+          <button class="btn primary" onclick="saveSchedule()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+    <script>
+      async function checkAuth() {
+        const res = await fetch("/api/me", { credentials: "include" });
+
+        if (!res.ok) {
+          window.location.href = "login.html";
+          return null;
+        }
+
+        const data = await res.json();
+        return data.data;
+      }
+      async function initUser() {
+        const user = await checkAuth();
+        if (!user) return;
+
+        document.getElementById("username").textContent = user.username;
+      }
+
+      let selectedDate = null;
+      let courses = [];
+
+      /* Load courses */
+      async function loadCourses() {
+        const res = await fetch("/api/courses", { credentials: "include" });
+        const json = await res.json();
+
+        courses = json.data;
+
+        const select = document.getElementById("courseSelect");
+        select.innerHTML = "";
+
+        courses.forEach((c) => {
+          const opt = document.createElement("option");
+          opt.value = c.course_id;
+          opt.textContent = c.course_name;
+          select.appendChild(opt);
+        });
+      }
+
+      /* Load schedules */
+      async function loadSchedules() {
+        const res = await fetch("/api/schedules", { credentials: "include" });
+        const json = await res.json();
+
+        return json.data.map((s) => ({
+          id: s.schedule_id,
+          title: s.title || s.course_name,
+          start: s.date + (s.start_time ? "T" + s.start_time : ""),
+          color: "#4f46e5",
+        }));
+      }
+
+      /* Modal controls */
+      function openModal(date) {
+        selectedDate = date;
+        document.getElementById("modal").classList.add("show");
+      }
+
+      function closeModal() {
+        document.getElementById("modal").classList.remove("show");
+      }
+
+      /* Save schedule */
+      async function saveSchedule() {
+        const course_id = document.getElementById("courseSelect").value;
+        const title = document.getElementById("title").value;
+        const start_time = document.getElementById("startTime").value;
+        const end_time = document.getElementById("endTime").value;
+
+        await fetch("/api/schedules", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            course_id,
+            title,
+            date: selectedDate,
+            start_time,
+            end_time,
+          }),
+        });
+
+        location.reload();
+      }
+          /* ── Logout ── */
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await fetch('/api/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = 'login.html';
+    });
+      /* Init calendar */
+      document.addEventListener("DOMContentLoaded", async function () {
+        await initUser(); // 🔥 ensures logged in FIRST
+
+        await loadCourses();
+        const events = await loadSchedules();
+
+        const calendar = new FullCalendar.Calendar(
+          document.getElementById("calendar"),
+          {
+            initialView: "dayGridMonth",
+            events: events,
+
+            dateClick: function (info) {
+              openModal(info.dateStr);
+            },
+
+            eventClick: async function (info) {
+              if (confirm("Delete this schedule?")) {
+                await fetch(`/api/schedules/${info.event.id}`, {
+                  method: "DELETE",
+                  credentials: "include",
+                });
+                location.reload();
+              }
+            },
+          },
+        );
+
+        calendar.render();
+      });
+    </script>
+  </body>
+</html>
