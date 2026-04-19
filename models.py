@@ -72,8 +72,8 @@ class MoodEvaluation:
 
     def set_scores(self, exhaustion, cynicism, efficacy):
         for score in [exhaustion, cynicism, efficacy]:
-            if not (1 <= score <= 5):
-                raise ValueError("Scores must be between 1 and 5.")
+            if not (0 <= score <= 3):
+                raise ValueError("Scores must be between 0 and 3.")
         self._exhaustion_score = exhaustion
         self._cynicism_score = cynicism
         self._efficacy_score = efficacy

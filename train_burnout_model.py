@@ -43,21 +43,22 @@ if df.empty:
 # STEP 3: Create burnout score
 # -----------------------------
 
-df["burnout_score"] = (df["exhaustion_score"]+ df["cynicism_score"]- df["efficacy_score"])
+df["burnout_score"] = (
+    df["exhaustion_score"]
+    + df["cynicism_score"]
+    + (3 - df["efficacy_score"])
+)
 
 # -----------------------------
 # STEP 4: Convert score → label
-# 0 = ต่ำ
-# 1 = กลาง
-# 2 = สูงง
 # -----------------------------
 def classify(score):
-    if score <= 2:
-        return 0
-    elif score <= 5:
-        return 1
+    if score <= 3:
+        return 0      # Low risk
+    elif score <= 6:
+        return 1      # Medium risk
     else:
-        return 2
+        return 2      # High risk
 
 df["burnout_level"] = df["burnout_score"].apply(classify)
 

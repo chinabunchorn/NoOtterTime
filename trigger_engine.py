@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from database import get_db
+from services.db_queries import get_db_connection
 import joblib
 
 # โหลด trained model มาใช้
@@ -8,7 +8,7 @@ feature_order = joblib.load("model_features.pkl")
 
 def weekly_trigger(user_id):
 
-    conn = get_db()
+    conn = get_db_connection()
     cursor = conn.cursor()
 # ตรวจสอบว่า user ประเมินไปล่าสุดเมื่อไหร่
     cursor.execute("""
@@ -29,7 +29,7 @@ def weekly_trigger(user_id):
 
 def late_night_trigger(user_id):
 
-    conn = get_db()
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -60,7 +60,7 @@ def late_night_trigger(user_id):
 # ฟีเจอร์ที่ใช้มี 3 ตัว: total_minutes, overwork_minutes, session_count
 def get_latest_features(user_id):
 
-    conn = get_db()
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""

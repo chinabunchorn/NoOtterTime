@@ -99,6 +99,74 @@
       animation: blink 2s ease-in-out infinite;
     }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    #mood-popup span {
+
+  font-size: 36px;
+  margin: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+
+}
+
+#mood-popup span:hover {
+
+  transform: scale(1.2);
+
+}
+
+#mood-popup span.selected {
+
+  filter: grayscale(100%);
+  opacity: 0.4;
+
+}
+
+.mood-submit-btn {
+
+  width: 100%;
+
+  margin-top: 24px;
+
+  padding: 16px;
+
+  border: none;
+
+  border-radius: 16px;
+
+  background: linear-gradient(135deg,#64CCC5,#4ecdc4);
+
+  color: white;
+
+  font-size: 1.2rem;
+
+  font-weight: 600;
+
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+
+}
+
+.mood-submit-btn:hover {
+
+  transform: translateY(-2px);
+
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+
+}
+
+.mood-submit-btn:active {
+
+  transform: translateY(0px);
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+
+}
   </style>
 </head>
 
@@ -228,6 +296,60 @@
   </div>
 
   <script>
+
+    async function submitMood(){
+
+  if(
+    moodScores.exhaustion === undefined ||
+    moodScores.cynicism === undefined ||
+    moodScores.efficacy === undefined
+  ){
+    alert("Please answer all questions");
+    return;
+  }
+
+  await fetch("/api/moods",{
+
+    method:"POST",
+
+    credentials:"include",
+
+    headers:{
+      "Content-Type":"application/json"
+    },
+
+    body:JSON.stringify({
+
+      exhaustion_score:moodScores.exhaustion,
+
+      cynicism_score:moodScores.cynicism,
+
+      efficacy_score:moodScores.efficacy
+
+    })
+
+  });
+
+  document.getElementById("mood-popup").style.display = "none";
+
+  refresh();
+
+}
+
+    async function checkMoodTrigger() {
+
+  const res = await fetch("/api/moods/should-trigger", {
+    credentials: "include"
+  });
+
+  const data = await res.json();
+
+  if (data.data.should_trigger) {
+
+    document.getElementById("mood-popup").style.display = "flex";
+
+  }
+}
   (function () {
     const TEAL          = '#4ecdc4';
     const DARK          = '#1a1a2e';
@@ -417,6 +539,7 @@
       document.getElementById('username-display').textContent = me.data.username;
 
       await refresh();
+      await checkMoodTrigger();
 
       document.getElementById('loading-overlay').style.display = 'none';
 
@@ -431,8 +554,81 @@
     });
 
     init();
+
+    window.moodScores = {};
+
+    window.setMood = function(event, type, value){
+
+  window.moodScores[type] = Number(value);
+
+  const group = event.target.parentElement.children;
+
+  for(let i=0;i<group.length;i++){
+    group[i].classList.remove("selected");
+  }
+
+  event.target.classList.add("selected");
+
+  console.log("Mood updated:", type, value);
+
+}
   })();
   </script>
+  <div id="mood-popup" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+    ">
 
+  <div style="
+background:white;
+padding:40px;
+border-radius:20px;
+width:600px;
+position:relative;
+z-index:10000;
+">
+
+<h2>Mood Check</h2>
+
+<p>How exhausted do you feel?</p>
+
+<div>
+<span onclick="setMood(event,'exhaustion',3)">😵</span>
+<span onclick="setMood(event,'exhaustion',2)">😟</span>
+<span onclick="setMood(event,'exhaustion',1)">😐</span>
+<span onclick="setMood(event,'exhaustion',0)">🙂</span>
+</div>
+
+
+<p>How unmotivated do you feel to start studying?</p>
+
+<div>
+<span onclick="setMood(event,'cynicism',3)">😵</span>
+<span onclick="setMood(event,'cynicism',2)">😟</span>
+<span onclick="setMood(event,'cynicism',1)">😐</span>
+<span onclick="setMood(event,'cynicism',0)">🙂</span>
+</div>
+
+
+<p>How much do you feel like you're not understanding your studies?</p>
+
+<div>
+<span onclick="setMood(event,'efficacy',3)">😵</span>
+<span onclick="setMood(event,'efficacy',2)">😟</span>
+<span onclick="setMood(event,'efficacy',1)">😐</span>
+<span onclick="setMood(event,'efficacy',0)">🙂</span>
+</div>
+
+<button onclick="submitMood()" class="mood-submit-btn">
+Submit
+</button>
+
+</div>
+</div>
 </body>
 </html>

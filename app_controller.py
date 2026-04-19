@@ -7,6 +7,15 @@ import bcrypt
 from managers import StudyManager, MoodManager, AuthManager
 from database import init_db  
 
+import joblib
+import numpy as np
+from ml_retrain import retrain_model
+
+burnout_model = joblib.load("burnout_model.pkl")
+feature_order = joblib.load("model_features.pkl")
+
+from trigger_engine import should_trigger_mood_form
+
 
 class AppController:
     def __init__(self, db_path="database.db"):
@@ -245,6 +254,10 @@ class AppController:
 
             try:
                 eval_id, risk_level = self._mood_manager.save_evaluation(user_id, data)
+                retrain_model()
+
+                global burnout_model
+                burnout_model = joblib.load("burnout_model.pkl")
             except ValueError as e:
                 return jsonify({"error": str(e)}), 400
 
@@ -256,33 +269,43 @@ class AppController:
 
         @self._app.route("/api/moods/burnout", methods=["GET"])
         def burnout_status():
+
             user_id, err = self._get_user_id()
-            if err: return err
-            
-            conn = self._mood_manager._get_connection()
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT exhaustion_score, cynicism_score, efficacy_score
-                FROM mood_evaluations
-                WHERE user_id = ?
-                ORDER BY evaluated_at DESC
-                LIMIT 1
-            """, (user_id,))
-            mood = cursor.fetchone()
-            conn.close()
+            if err:
+                return err
 
-            if mood:
-                score = mood["exhaustion_score"] + mood["cynicism_score"] - mood["efficacy_score"]
-                if score <= 2:
-                    burnout_label = "Low"
-                elif score <= 5:
-                    burnout_label = "Medium"
-                else:
-                    burnout_label = "High"
-            else:
-                burnout_label = "N/A"
+            training_rows = self._mood_manager.get_training_data(user_id)
 
-            return jsonify({"status": "success", "data": {"label": burnout_label}}), 200
+            if not training_rows:
+                return jsonify({
+                    "status": "success",
+                    "data": {"label": "Not enough data"}
+                }), 200
+
+            latest = training_rows[0]
+
+            feature_vector = [
+                latest["total_minutes"],
+                latest["overwork_minutes"],
+                latest["session_count"]
+            ]
+
+            X = np.array(feature_vector).reshape(1, -1)
+
+            prediction = burnout_model.predict(X)[0]
+
+            label_map = {
+                0: "Low risk",
+                1: "Medium risk",
+                2: "High risk"
+            }
+
+            return jsonify({
+                "status": "success",
+                "data": {
+                    "label": label_map[prediction]
+                }
+            }), 200
 
         @self._app.route("/api/moods/history", methods=["GET"])
         def mood_history():
@@ -308,6 +331,22 @@ class AppController:
 
             dataset = self._mood_manager.get_training_data(user_id)
             return jsonify({"status": "success", "data": dataset}), 200
+        
+        @self._app.route("/api/moods/should-trigger", methods=["GET"])
+        def check_mood_trigger():
+
+            user_id, err = self._get_user_id()
+            if err:
+                return err
+
+            trigger = should_trigger_mood_form(user_id)
+
+            return jsonify({
+                "status": "success",
+                "data": {
+                "should_trigger": trigger
+            }
+            }), 200
 
     # --------------------------------------------------
     # ▶️ Run
