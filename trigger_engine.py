@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from services.db_queries import get_db_connection
 import joblib
+import pandas as pd
 
 # โหลด trained model มาใช้
 model = joblib.load("burnout_model.pkl")
@@ -82,7 +83,10 @@ def get_latest_features(user_id):
         "session_count": row[2]
         }
     # เรียงฟีเจอร์ให้ตรงกับตอน train
-    ordered_features = [[features_dict[col] for col in feature_order]]
+    ordered_features = pd.DataFrame(
+        [[features_dict[col] for col in feature_order]],
+        columns=feature_order
+    )
     return ordered_features
 
 #   use trained ML model to detect burnout risk

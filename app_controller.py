@@ -9,6 +9,7 @@ from database import init_db
 
 import joblib
 import numpy as np
+import pandas as pd
 from ml_retrain import retrain_model
 
 burnout_model = joblib.load("burnout_model.pkl")
@@ -284,15 +285,12 @@ class AppController:
 
             latest = training_rows[0]
 
-            feature_vector = [
-                latest["total_minutes"],
-                latest["overwork_minutes"],
-                latest["session_count"]
-            ]
+            feature_vector = pd.DataFrame(
+                [[latest[f] for f in feature_order]],
+                columns=feature_order
+            )
 
-            X = np.array(feature_vector).reshape(1, -1)
-
-            prediction = burnout_model.predict(X)[0]
+            prediction = burnout_model.predict(feature_vector)[0]
 
             label_map = {
                 0: "Low risk",
