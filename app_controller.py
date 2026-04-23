@@ -1,4 +1,4 @@
-import sqlite3
+import libsql_experimental as sqlite3
 import os
 from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
@@ -19,7 +19,7 @@ from trigger_engine import should_trigger_mood_form
 
 
 class AppController:
-    def __init__(self, db_path="database.db"):
+    def __init__(self):
         self._app = Flask(__name__)
         self._app.secret_key = "your_secret_key"
 
@@ -28,9 +28,9 @@ class AppController:
 
         CORS(self._app, supports_credentials=True)
 
-        self._auth_manager = AuthManager(db_path)
-        self._study_manager = StudyManager(db_path)
-        self._mood_manager = MoodManager(db_path)
+        self._auth_manager = AuthManager()
+        self._study_manager = StudyManager()
+        self._mood_manager = MoodManager()
 
         init_db()
 
@@ -425,7 +425,9 @@ class AppController:
         port = int(os.environ.get("PORT", 5000))
         self._app.run(host="0.0.0.0", port=port, debug=False)
 
+# Instantiate the controller globally so Gunicorn can access the Flask app object
+controller = AppController()
+app = controller._app
 
 if __name__ == "__main__":
-    controller = AppController()
     controller.run()

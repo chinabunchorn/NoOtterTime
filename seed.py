@@ -1,15 +1,15 @@
-import sqlite3
+import libsql_experimental as sqlite3
 import bcrypt
 from datetime import datetime, timedelta
 import random
-from database import init_db
+from database import init_db, get_connection
 
 
 def seed_database():
 
     init_db()
 
-    conn = sqlite3.connect('database.db')
+    conn = get_connection()
     cursor = conn.cursor()
 
     try:

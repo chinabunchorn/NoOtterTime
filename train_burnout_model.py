@@ -1,14 +1,15 @@
-import sqlite3
+import libsql_experimental as sqlite3
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import joblib
+from database import get_connection
 
 # -----------------------------
 # STEP 1: เชื่อมเข้า DB ที่สร้าง
 # -----------------------------
-conn = sqlite3.connect("database.db")
+conn = get_connection()
 
 # -----------------------------
 # STEP 2: Extract training dataset

@@ -1,12 +1,13 @@
-import sqlite3
+import libsql_experimental as sqlite3
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 import joblib
+from database import get_connection
 
 
 def retrain_model():
 
-    conn = sqlite3.connect("database.db")
+    conn = get_connection()
 
     query = """
     SELECT 

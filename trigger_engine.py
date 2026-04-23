@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from services.db_queries import get_db_connection
+from database import get_connection as get_db_connection
 import joblib
 import pandas as pd
 

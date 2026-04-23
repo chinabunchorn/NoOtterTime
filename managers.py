@@ -1,15 +1,16 @@
-import sqlite3
+import libsql_experimental as sqlite3
 from datetime import datetime, timedelta
 from models import Course, StudySession, MoodEvaluation
+from database import get_connection
 
 
 class BaseManager:
     """Parent class to handle DB connection encapsulation."""
-    def __init__(self, db_path='database.db'):
-        self._db_path = db_path
+    def __init__(self):
+        pass
 
     def _get_connection(self):
-        conn = sqlite3.connect(self._db_path)
+        conn = get_connection()
         conn.row_factory = sqlite3.Row
         return conn
 
