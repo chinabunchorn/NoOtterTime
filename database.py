@@ -1,5 +1,5 @@
 import os
-import libsql_experimental as sqlite3
+import libsql as sqlite3
 
 def get_connection():
     db_url = os.environ.get("TURSO_DATABASE_URL", "database.db")

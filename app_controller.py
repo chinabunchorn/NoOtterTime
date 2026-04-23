@@ -1,4 +1,4 @@
-import libsql_experimental as sqlite3
+import libsql as sqlite3
 import os
 from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
