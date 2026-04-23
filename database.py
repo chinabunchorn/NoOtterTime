@@ -2,8 +2,8 @@ import os
 import libsql_experimental as sqlite3
 
 def get_connection():
-    db_url = os.environ.get("libsql://noottertime-db-pawit-billamas.aws-us-east-1.turso.io", "database.db")
-    auth_token = os.environ.get("eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY5MzQwODIsImlkIjoiMDE5ZGI5ODUtNDEwMS03OGNlLWE1ZGYtZDRjOTA4NWRkMGUzIiwicmlkIjoiY2VmNjRjZmQtYTZjMS00NzYzLWFhOGQtMTc2ZTk0YmExNjQ1In0.omgpXcoIhItJ3UYWCQ4-QByaCwY6S-00ZYSMenOGBW_Yh7N9cebydeu-l4T6nJV3-VXeF7rXhbLX0fpW1hZsBQ", "")
+    db_url = os.environ.get("TURSO_DATABASE_URL", "database.db")
+    auth_token = os.environ.get("TURSO_AUTH_TOKEN", "")
     if db_url.startswith("libsql://") or db_url.startswith("https://"):
         return sqlite3.connect(db_url, auth_token=auth_token)
     else:
