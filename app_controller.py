@@ -393,10 +393,16 @@ class AppController:
             ))
 
             inserted = cursor.fetchone()
+            if isinstance(inserted, dict):
+                schedule_id = inserted["schedule_id"]
+            elif isinstance(inserted, (list, tuple)) and inserted:
+                schedule_id = inserted[0]
+            else:
+                schedule_id = cursor.lastrowid
             conn.commit()
             conn.close()
 
-            return jsonify({"status": "success", "schedule_id": inserted["schedule_id"]}), 201
+            return jsonify({"status": "success", "schedule_id": schedule_id}), 201
         
         @self._app.route("/api/schedules", methods=["GET"])
         def get_schedules():

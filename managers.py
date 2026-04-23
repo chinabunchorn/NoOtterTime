@@ -41,6 +41,20 @@ class BaseManager:
         conn = get_connection()
         return DictConnWrapper(conn)
 
+    def _get_inserted_id(self, cursor, column_name):
+        """Return an inserted id from either RETURNING rows or lastrowid."""
+        row = cursor.fetchone()
+        if isinstance(row, dict):
+            return row[column_name]
+        if isinstance(row, (list, tuple)) and row:
+            return row[0]
+
+        inserted_id = getattr(cursor, "lastrowid", None)
+        if inserted_id is not None:
+            return inserted_id
+
+        raise RuntimeError(f"Could not determine inserted id for {column_name}")
+
 class StudyManager(BaseManager):
 
     # --- Courses ---
@@ -56,10 +70,10 @@ class StudyManager(BaseManager):
             'INSERT INTO courses (user_id, course_name) VALUES (?, ?) RETURNING course_id',
             (course.get_user_id(), course.get_course_name())
         )
-        inserted = cursor.fetchone()
+        course_id = self._get_inserted_id(cursor, "course_id")
         conn.commit()
         conn.close()
-        return inserted["course_id"]
+        return course_id
 
     def get_courses(self, user_id):
         """Returns all courses belonging to a user."""
@@ -100,10 +114,10 @@ class StudyManager(BaseManager):
             session_obj.get_actual_minutes(),
             session_obj.get_task_type()
         ))
-        inserted = cursor.fetchone()
+        session_id = self._get_inserted_id(cursor, "session_id")
         conn.commit()
         conn.close()
-        return inserted["session_id"]
+        return session_id
 
     def get_study_history(self, user_id, limit=20):
         """Recent study sessions joined with course names."""
@@ -291,12 +305,12 @@ class MoodManager(BaseManager):
             mood._efficacy_score,
             now
         ))
-        inserted = cursor.fetchone()
+        eval_id = self._get_inserted_id(cursor, "evaluation_id")
         conn.commit()
         conn.close()
 
         burnout_risk = mood.calculate_burnout_risk()
-        return inserted["evaluation_id"], burnout_risk
+        return eval_id, burnout_risk
 
     def get_mood_history(self, user_id, limit=10):
         """Returns recent mood evaluations for UI charts."""
@@ -362,10 +376,10 @@ class AuthManager(BaseManager):
             VALUES (?, ?, ?, ?, ?, ?, ?)
             RETURNING user_id
         ''', (username, password_hash, gender, age, field_of_interest, study_goal, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-        inserted = cursor.fetchone()
+        new_user_id = self._get_inserted_id(cursor, "user_id")
         conn.commit()
         conn.close()
-        return inserted["user_id"]
+        return new_user_id
 
     def find_user_by_username(self, username):
         """Fetches a single user row by username, or None if not found."""
