@@ -80,8 +80,10 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
-
-                const data = await response.json();
+                const contentType = response.headers.get("content-type") || "";
+                const data = contentType.includes("application/json")
+                    ? await response.json()
+                    : { error: await response.text() };
 
                 msgBox.classList.remove("hidden");
                 if (response.ok) {
@@ -90,7 +92,7 @@
                     setTimeout(() => { window.location.href = "login.html"; }, 1500);
                 } else {
                     msgBox.className = "p-2 rounded text-white text-center bg-red-500";
-                    msgBox.innerText = data.error;
+                    msgBox.innerText = data.error || "Sign up failed. Please try again.";
                 }
             } catch (error) {
                 console.error("Error:", error);

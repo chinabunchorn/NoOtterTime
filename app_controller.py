@@ -3,6 +3,7 @@ import os
 from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
 import bcrypt
+from werkzeug.exceptions import HTTPException
 
 from managers import StudyManager, MoodManager, AuthManager
 from database import init_db  
@@ -38,7 +39,20 @@ class AppController:
 
         init_db()
 
+        self._register_error_handlers()
         self._register_routes()
+
+    def _register_error_handlers(self):
+        @self._app.errorhandler(Exception)
+        def handle_api_exception(error):
+            if not request.path.startswith("/api/"):
+                raise error
+
+            if isinstance(error, HTTPException):
+                return jsonify({"error": error.description}), error.code
+
+            self._app.logger.exception("Unhandled API error on %s", request.path)
+            return jsonify({"error": "Internal server error"}), 500
 
     def _get_user_id(self):
         """Returns (user_id, None) on success or (None, error_response) on failure."""
