@@ -1,4 +1,3 @@
-import libsql_experimental as sqlite3
 import os
 from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
@@ -379,6 +378,7 @@ class AppController:
             cursor.execute("""
                 INSERT INTO schedules (user_id, course_id, title, date, start_time, end_time)
                 VALUES (?, ?, ?, ?, ?, ?)
+                RETURNING schedule_id
             """, (
                 user_id,
                 data["course_id"],
@@ -388,11 +388,11 @@ class AppController:
                 data.get("end_time")
             ))
 
+            inserted = cursor.fetchone()
             conn.commit()
-            schedule_id = cursor.lastrowid
             conn.close()
 
-            return jsonify({"status": "success", "schedule_id": schedule_id}), 201
+            return jsonify({"status": "success", "schedule_id": inserted["schedule_id"]}), 201
         
         @self._app.route("/api/schedules", methods=["GET"])
         def get_schedules():
