@@ -1,4 +1,4 @@
-import libsql as sqlite3
+import libsql_experimental as sqlite3
 from datetime import datetime, timedelta
 from models import Course, StudySession, MoodEvaluation
 from database import get_connection

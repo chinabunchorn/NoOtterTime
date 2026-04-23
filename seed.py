@@ -1,4 +1,4 @@
-import libsql as sqlite3
+import libsql_experimental as sqlite3
 import bcrypt
 from datetime import datetime, timedelta
 import random
