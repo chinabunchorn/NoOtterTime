@@ -86,8 +86,10 @@ class AppController:
                 new_user_id = self._auth_manager.create_user(
                     username, hashed_pw, gender, age, field_of_interest, study_goal
                 )
-            except sqlite3.IntegrityError:
-                return jsonify({"error": "Username already exists"}), 409
+            except Exception as e:
+                if "UNIQUE constraint" in str(e):
+                    return jsonify({"error": "Username already exists"}), 409
+                raise e
 
             return jsonify({
                 "status": "success",
