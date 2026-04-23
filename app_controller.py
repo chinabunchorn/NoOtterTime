@@ -68,6 +68,11 @@ class AppController:
         def index():
             return send_from_directory(frontend_dir, "index.html")
 
+        @self._app.route("/favicon.ico")
+        def favicon():
+            static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "images")
+            return send_from_directory(static_dir, "logo.png", mimetype="image/png")
+
         @self._app.route("/<path:filename>")
         def serve_frontend(filename):
             return send_from_directory(frontend_dir, filename)
