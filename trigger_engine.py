@@ -4,8 +4,12 @@ import joblib
 import pandas as pd
 
 # โหลด trained model มาใช้
-model = joblib.load("burnout_model.pkl")
-feature_order = joblib.load("model_features.pkl")
+try:
+    model = joblib.load("burnout_model.pkl")
+    feature_order = joblib.load("model_features.pkl")
+except FileNotFoundError:
+    model = None
+    feature_order = []
 
 def weekly_trigger(user_id):
 
@@ -91,6 +95,9 @@ def get_latest_features(user_id):
 
 #   use trained ML model to detect burnout risk
 def ml_trigger(user_id):
+    if model is None:
+        return False
+
 # ดึงฟีเจอร์ล่าสุดมา
     features = get_latest_features(user_id)
 

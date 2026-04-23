@@ -12,8 +12,12 @@ import numpy as np
 import pandas as pd
 from ml_retrain import retrain_model
 
-burnout_model = joblib.load("burnout_model.pkl")
-feature_order = joblib.load("model_features.pkl")
+try:
+    burnout_model = joblib.load("burnout_model.pkl")
+    feature_order = joblib.load("model_features.pkl")
+except FileNotFoundError:
+    burnout_model = None
+    feature_order = []
 
 from trigger_engine import should_trigger_mood_form
 
@@ -274,6 +278,12 @@ class AppController:
             user_id, err = self._get_user_id()
             if err:
                 return err
+                
+            if burnout_model is None:
+                return jsonify({
+                    "status": "success",
+                    "data": {"label": "Not enough data"}
+                }), 200
 
             training_rows = self._mood_manager.get_training_data(user_id)
 
