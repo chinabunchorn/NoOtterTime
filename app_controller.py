@@ -78,6 +78,7 @@ class AppController:
 
         @self._app.route("/api/signup", methods=["POST"])
         def signup():
+            self._app.logger.info("Signup request received")
             data = request.get_json()
             if not data:
                 return jsonify({"error": "Request body must be JSON"}), 400
@@ -98,6 +99,7 @@ class AppController:
             if age is not None and (age < 0 or age > 120):
                 return jsonify({"error": "Invalid age"}), 400
 
+            self._app.logger.info("Signup validated for username=%s", username)
             hashed_pw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
             try:
@@ -105,10 +107,12 @@ class AppController:
                     username, hashed_pw, gender, age, field_of_interest, study_goal
                 )
             except Exception as e:
+                self._app.logger.exception("Signup failed while creating user username=%s", username)
                 if "UNIQUE constraint" in str(e):
                     return jsonify({"error": "Username already exists"}), 409
                 raise e
 
+            self._app.logger.info("Signup succeeded for username=%s user_id=%s", username, new_user_id)
             return jsonify({
                 "status": "success",
                 "message": "Account created successfully",

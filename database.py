@@ -4,7 +4,11 @@ import libsql_experimental as sqlite3
 def get_connection():
     db_url = os.environ.get("TURSO_DATABASE_URL", "database.db")
     auth_token = os.environ.get("TURSO_AUTH_TOKEN", "")
+    if not db_url:
+        raise RuntimeError("TURSO_DATABASE_URL is not set")
     if db_url.startswith("libsql://") or db_url.startswith("https://"):
+        if not auth_token:
+            raise RuntimeError("TURSO_AUTH_TOKEN is not set for remote libsql connection")
         return sqlite3.connect(db_url, auth_token=auth_token)
     else:
         return sqlite3.connect(db_url)
