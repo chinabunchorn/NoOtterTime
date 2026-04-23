@@ -3,6 +3,35 @@ from datetime import datetime, timedelta
 from models import Course, StudySession, MoodEvaluation
 from database import get_connection
 
+class DictCursorWrapper:
+    def __init__(self, cursor):
+        self._cursor = cursor
+    def execute(self, *args, **kwargs):
+        self._cursor.execute(*args, **kwargs)
+        return self
+    def fetchone(self):
+        row = self._cursor.fetchone()
+        if row is None or self._cursor.description is None: return row
+        cols = [col[0] for col in self._cursor.description]
+        return dict(zip(cols, row))
+    def fetchall(self):
+        rows = self._cursor.fetchall()
+        if not rows or self._cursor.description is None: return rows if rows else []
+        cols = [col[0] for col in self._cursor.description]
+        return [dict(zip(cols, row)) for row in rows]
+    def __getattr__(self, attr):
+        return getattr(self._cursor, attr)
+
+class DictConnWrapper:
+    def __init__(self, conn):
+        self._conn = conn
+    def cursor(self):
+        return DictCursorWrapper(self._conn.cursor())
+    def execute(self, *args, **kwargs):
+        c = self.cursor()
+        return c.execute(*args, **kwargs)
+    def __getattr__(self, attr):
+        return getattr(self._conn, attr)
 
 class BaseManager:
     """Parent class to handle DB connection encapsulation."""
@@ -11,10 +40,7 @@ class BaseManager:
 
     def _get_connection(self):
         conn = get_connection()
-        def dict_factory(cursor, row):
-            return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
-        conn.row_factory = dict_factory
-        return conn
+        return DictConnWrapper(conn)
 
 class StudyManager(BaseManager):
 
