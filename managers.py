@@ -331,7 +331,7 @@ class AuthManager(BaseManager):
             INSERT INTO users
             (username, password_hash, gender, age, field_of_interest, study_goal, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (username, password_hash, gender, age, field_of_interest, study_goal, datetime.now()))
+        ''', (username, password_hash, gender, age, field_of_interest, study_goal, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
         conn.commit()
         new_user_id = cursor.lastrowid
         conn.close()
