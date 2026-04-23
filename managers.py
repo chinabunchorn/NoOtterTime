@@ -11,7 +11,9 @@ class BaseManager:
 
     def _get_connection(self):
         conn = get_connection()
-        conn.row_factory = sqlite3.Row
+        def dict_factory(cursor, row):
+            return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
+        conn.row_factory = dict_factory
         return conn
 
 class StudyManager(BaseManager):
