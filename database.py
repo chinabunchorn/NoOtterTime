@@ -1,5 +1,6 @@
 import psycopg2
 import os
+from psycopg2.extras import RealDictCursor
 
 def get_db_connection():
     """
@@ -11,7 +12,7 @@ def get_db_connection():
     
     if database_url:
         # psycopg2 can read the full URL directly, automatically handling ?sslmode=require
-        conn = psycopg2.connect(database_url)
+        conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
     else:
         # Default local connection for development
         conn = psycopg2.connect(
@@ -19,7 +20,8 @@ def get_db_connection():
             port=5432,
             database='nootter_time',
             user='postgres',
-            password='postgres'
+            password='postgres',
+            cursor_factory=RealDictCursor
         )
     
     return conn

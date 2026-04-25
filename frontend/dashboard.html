@@ -457,8 +457,12 @@
 
     async function checkMoodTrigger() {
       const res = await fetch('/api/moods/should-trigger', { credentials: 'include' });
+      if (!res.ok) {
+        console.error('Mood trigger failed', res.status, await res.text());
+        return;
+      }
       const data = await res.json();
-      if (data.data.should_trigger) {
+      if (data.data?.should_trigger) {
         document.getElementById('mood-popup').style.display = 'flex';
       }
     }

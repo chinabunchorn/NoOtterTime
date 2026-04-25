@@ -1,4 +1,5 @@
 import os
+import traceback
 from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
 import bcrypt
@@ -409,14 +410,25 @@ class AppController:
             if err:
                 return err
 
-            trigger = should_trigger_mood_form(user_id)
+            try:
+                trigger = should_trigger_mood_form(user_id)
+            except Exception as e:
+                traceback.print_exc()
+                return jsonify({"error": str(e)}), 500
 
             return jsonify({
                 "status": "success",
                 "data": {
-                "should_trigger": trigger
-            }
+                    "should_trigger": trigger
+                }
             }), 200
+
+        @self._app.errorhandler(Exception)
+        def handle_exception(e):
+            traceback.print_exc()
+            response = jsonify({"error": "Internal Server Error", "details": str(e)})
+            response.status_code = 500
+            return response
 
     # --------------------------------------------------
     # ▶️ Run

@@ -15,7 +15,7 @@ def weekly_trigger(user_id):
     cursor.execute("""
         SELECT MAX(evaluated_at)
         FROM mood_evaluations
-        WHERE user_id = ?
+        WHERE user_id = %s
     """, (user_id,))
 
     last_eval = cursor.fetchone()[0]
@@ -24,7 +24,8 @@ def weekly_trigger(user_id):
     if last_eval is None:
         return True
 # ถ้าเคยประเมินแล้ว แต่เกิน 7 วันก็ trigger
-    last_eval = datetime.fromisoformat(last_eval)
+    if isinstance(last_eval, str):
+        last_eval = datetime.fromisoformat(last_eval)
     return datetime.now() - last_eval >= timedelta(days=7)
 
 
@@ -36,8 +37,8 @@ def late_night_trigger(user_id):
     cursor.execute("""
         SELECT DATE(start_time)
         FROM study_sessions
-        WHERE user_id = ?
-        AND time(start_time) >= '20:00'
+        WHERE user_id = %s
+        AND EXTRACT(HOUR FROM start_time) >= 20
         ORDER BY start_time DESC
         LIMIT 3
     """, (user_id,))
@@ -51,7 +52,12 @@ def late_night_trigger(user_id):
     if len(rows) < 3:
         return False
 
-    dates = [datetime.fromisoformat(r[0]) for r in rows]
+    dates = []
+    for r in rows:
+        row_date = r[0]
+        if isinstance(row_date, str):
+            row_date = datetime.fromisoformat(row_date)
+        dates.append(row_date)
 
     return (
         (dates[0] - dates[1]).days == 1 and
@@ -70,8 +76,8 @@ def get_latest_features(user_id):
             SUM(actual_minutes - goal_minutes),
             COUNT(session_id)
         FROM study_sessions
-        WHERE user_id = ?
-        AND DATE(start_time) = DATE('now')
+        WHERE user_id = %s
+        AND DATE(start_time) = CURRENT_DATE
     """, (user_id,))
     row = cursor.fetchone()
     conn.close()
