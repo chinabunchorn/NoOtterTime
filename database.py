@@ -1,24 +1,17 @@
 import psycopg2
 import os
-from urllib.parse import urlparse
 
 def get_db_connection():
     """
     Establishes a PostgreSQL connection from DATABASE_URL environment variable.
     Falls back to default parameters if DATABASE_URL is not set.
+    psycopg2 handles the full URL directly, including any SSL requirements.
     """
     database_url = os.environ.get('DATABASE_URL')
     
     if database_url:
-        # Parse the DATABASE_URL (format: postgresql://user:password@host:port/database)
-        parsed = urlparse(database_url)
-        conn = psycopg2.connect(
-            host=parsed.hostname,
-            port=parsed.port or 5432,
-            database=parsed.path.lstrip('/'),
-            user=parsed.username,
-            password=parsed.password
-        )
+        # psycopg2 can read the full URL directly, automatically handling ?sslmode=require
+        conn = psycopg2.connect(database_url)
     else:
         # Default local connection for development
         conn = psycopg2.connect(
