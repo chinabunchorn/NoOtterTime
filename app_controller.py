@@ -1,11 +1,11 @@
-import sqlite3
 import os
 from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
 import bcrypt
+import psycopg2
 
 from managers import StudyManager, MoodManager, AuthManager
-from database import init_db  
+from database import init_db
 
 import joblib
 import numpy as np
@@ -82,7 +82,7 @@ class AppController:
                 new_user_id = self._auth_manager.create_user(
                     username, hashed_pw, gender, age, field_of_interest, study_goal
                 )
-            except sqlite3.IntegrityError:
+            except psycopg2.IntegrityError:
                 return jsonify({"error": "Username already exists"}), 409
 
             return jsonify({
@@ -193,14 +193,14 @@ class AppController:
             if err: return err
 
             conn = self._study_manager._get_connection()
-            cursor = conn.cursor()
+            cursor = self._study_manager._get_cursor(conn)
             cursor.execute("""
                 SELECT
-                    strftime('%m/%d', DATE(start_time)) AS day,
+                    TO_CHAR(DATE(start_time), 'MM/DD') AS day,
                     SUM(actual_minutes) / 60.0          AS hours
                 FROM study_sessions
-                WHERE user_id = ?
-                  AND DATE(start_time) >= DATE('now', '-6 days')
+                WHERE user_id = %s
+                  AND DATE(start_time) >= NOW() - INTERVAL '6 days'
                 GROUP BY DATE(start_time)
                 ORDER BY DATE(start_time)
             """, (user_id,))
@@ -343,11 +343,12 @@ class AppController:
                     return jsonify({"error" : f"Missing {f}"}), 400
                 
             conn = self._study_manager._get_connection()
-            cursor = conn.cursor()
+            cursor = self._study_manager._get_cursor(conn)
 
             cursor.execute("""
                 INSERT INTO schedules (user_id, course_id, title, date, start_time, end_time)
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING schedule_id
             """, (
                 user_id,
                 data["course_id"],
@@ -357,8 +358,8 @@ class AppController:
                 data.get("end_time")
             ))
 
+            schedule_id = cursor.fetchone()["schedule_id"]
             conn.commit()
-            schedule_id = cursor.lastrowid
             conn.close()
 
             return jsonify({"status": "success", "schedule_id": schedule_id}), 201
@@ -369,13 +370,13 @@ class AppController:
             if err: return err
 
             conn = self._study_manager._get_connection()
-            cursor = conn.cursor()
+            cursor = self._study_manager._get_cursor(conn)
 
             cursor.execute("""
                 SELECT s.*, c.course_name
                 FROM schedules s
                 JOIN courses c ON s.course_id = c.course_id
-                WHERE s.user_id = ?
+                WHERE s.user_id = %s
             """, (user_id,))
 
             data = [dict(row) for row in cursor.fetchall()]
@@ -389,11 +390,11 @@ class AppController:
             if err: return err
 
             conn = self._study_manager._get_connection()
-            cursor = conn.cursor()
+            cursor = self._study_manager._get_cursor(conn)
 
             cursor.execute("""
                 DELETE FROM schedules
-                WHERE schedule_id = ? AND user_id = ?
+                WHERE schedule_id = %s AND user_id = %s
             """, (schedule_id, user_id))
 
             conn.commit()
