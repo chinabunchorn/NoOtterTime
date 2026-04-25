@@ -422,10 +422,17 @@ class AppController:
     # ▶️ Run
     # --------------------------------------------------
 
+    def get_app(self):
+        """Returns the Flask app instance for Gunicorn."""
+        return self._app
+
     def run(self):
         port = int(os.environ.get("PORT", 5000))
         self._app.run(host="0.0.0.0", port=port, debug=False)
 
+
+# Add this line so Gunicorn can find the app easily
+app = AppController().get_app()
 
 if __name__ == "__main__":
     controller = AppController()
